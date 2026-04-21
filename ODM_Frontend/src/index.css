@@ -1,0 +1,56 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes:
+    light --default,
+    dark --prefersdark;
+}
+/* header */
+[data-theme="light"] .header-custom {
+  background-color: #808588 !important;
+  color: rgb(0, 0, 0) !important;
+}
+[data-theme="dark"] .header-custom {
+  background-color: #3a4852 !important;
+  color: rgb(255, 255, 255) !important;
+}
+
+/* Avatar header */
+[data-theme="light"] .avatar-custom {
+  background-color: black !important;
+  color: white !important;
+}
+[data-theme="dark"] .avatar-custom {
+  background-color: #ccc !important;
+  color: black !important;
+}
+
+/* Background navigation sidenav */
+[data-theme="light"] .nav-bg {
+  background-color: #808588 !important;
+  color: rgb(0, 0, 0) !important;
+}
+[data-theme="dark"] .nav-bg {
+  background-color: #3a4852 !important;
+  color: rgb(255, 255, 255) !important;
+}
+
+/* bouton */
+[data-theme="light"] .buttom-custom {
+  background-color: #808588 !important;
+  color: rgb(0, 0, 0) !important;
+}
+[data-theme="dark"] .buttom-custom {
+  background-color: #3a4852 !important;
+  color: rgb(255, 255, 255) !important;
+}
+
+/* formulaire Login et register */
+[data-theme="light"] .form-custom {
+  background-color: #8a3131 !important;
+  color: white;
+}
+
+[data-theme="dark"] .form-custom {
+  background-color: #207dc0 !important;
+  color: white;
+}

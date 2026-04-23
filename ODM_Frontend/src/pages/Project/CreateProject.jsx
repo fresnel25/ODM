@@ -17,17 +17,15 @@ const CreateProject = () => {
         onClose={() => setOpen(false)}
       >
         <form action="">
-          <div className="items-center">
-            <div className="flex flex-col gap-5 justify-center w-full">
-              <div className="bg-base-300 px-6 py-4">
-                <InputForm label="Projet" placeholder="le nom du projet" />
-              </div>
-              <div className="bg-base-300 px-6 py-4">
-                <Textarea
-                  label="Description"
-                  placeholder="description du projet"
-                />
-              </div>
+          <div className="grid grid-cols-1 gap-5">
+            <div className="">
+              <InputForm label="Projet" placeholder="le nom du projet" />
+            </div>
+            <div className="">
+              <Textarea
+                label="Description"
+                placeholder="description du projet"
+              />
             </div>
           </div>
         </form>

@@ -9,7 +9,7 @@ const Input = ({
 }) => {
   return (
     <div>
-      <fieldset className="fieldset">
+      <fieldset className="fieldset w-full">
         <label className="label text-lg flex items-center gap-2">
           <span>{icon}</span>
           <span>{label}</span>
@@ -17,7 +17,7 @@ const Input = ({
 
         <input
           type={type}
-          className="input shadow-xl text-base-content rounded-xl w-96"
+          className="input shadow-xl text-base-content rounded-xl"
           placeholder={placeholder}
           value={value}
           name={name}

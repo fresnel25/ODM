@@ -17,17 +17,15 @@ const CreatePlace = () => {
         onClose={() => setOpen(false)}
       >
         <form action="">
-          <div className="items-center">
-            <div className="flex flex-col gap-5 justify-center w-full">
-              <div className="bg-base-300 px-6 py-4">
-                <InputForm label="Nom du lieu" placeholder="écrire le nom du lieu" />
-              </div>
-              <div className="bg-base-300 px-6 py-4">
-                <Textarea
-                  label="Description"
-                  placeholder="description du lieu"
-                />
-              </div>
+          <div className="grid grid-cols-1 gap-5">
+            <div className="">
+              <InputForm
+                label="Nom du lieu"
+                placeholder="écrire le nom du lieu"
+              />
+            </div>
+            <div className="">
+              <Textarea label="Description" placeholder="description du lieu" />
             </div>
           </div>
         </form>

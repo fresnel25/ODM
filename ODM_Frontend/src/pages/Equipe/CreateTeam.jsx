@@ -17,17 +17,18 @@ const CreateTeam = () => {
         onClose={() => setOpen(false)}
       >
         <form action="">
-          <div className="items-center">
-            <div className="flex flex-col gap-5 justify-center w-full">
-              <div className="bg-base-300 px-6 py-4">
-                <InputForm label="Nom équipe" placeholder="écrire le nom de l'équipe" />
-              </div>
-              <div className="bg-base-300 px-6 py-4">
-                <Textarea
-                  label="Description"
-                  placeholder="description de l'équipe"
-                />
-              </div>
+          <div className="grid grid-cols-1 gap-5">
+            <div className="">
+              <InputForm
+                label="Nom équipe"
+                placeholder="écrire le nom de l'équipe"
+              />
+            </div>
+            <div className="">
+              <Textarea
+                label="Description"
+                placeholder="description de l'équipe"
+              />
             </div>
           </div>
         </form>

@@ -21,44 +21,38 @@ const CreateUser = () => {
         onClose={() => setOpen(false)}
       >
         <form action="">
-          <div className="flex flex-col gap-10">
-            <div className="bg-base-300 px-6 py-4 flex flex-col items-center">
-              <div className="flex gap-5 justify-center w-full">
-                <InputForm label="Nom" placeholder=" votre nom" />
-                <InputForm label="Prénom" placeholder=" votre prénom" />
-              </div>
-
-              <div className="flex gap-5 justify-center w-full">
-                <InputForm label="Courriel" placeholder=" votre courriel" />
-                <InputForm label="Date de naissance" placeholder=" votre nom" />
-              </div>
+          <div className="flex flex-col gap-5 ">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+              <InputForm label="Nom" placeholder=" votre nom" />
+              <InputForm label="Prénom" placeholder=" votre prénom" />
             </div>
 
-            <div className="bg-base-300 px-6 py-4 items-center">
-              <div className="flex gap-5 justify-center w-full">
-                <InputForm
-                  label="mot de passe"
-                  placeholder="votre mot de passe"
-                />
-                <InputForm
-                  label="Confirmation"
-                  placeholder="confirmer votre mot de passe"
-                />
-              </div>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+              <InputForm label="Courriel" placeholder=" votre courriel" />
+              <InputForm label="Date de naissance" placeholder=" votre nom" />
             </div>
 
-            <div className="bg-base-300 px-6 py-4 items-center">
-              <div className="flex gap-5 justify-center w-full">
-                <InputForm
-                  label="Adresse Personnelle"
-                  placeholder="votre adresse personnelle
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+              <InputForm
+                label="mot de passe"
+                placeholder="votre mot de passe"
+              />
+              <InputForm
+                label="Confirmation"
+                placeholder="confirmer votre mot de passe"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+              <InputForm
+                label="Adresse Personnelle"
+                placeholder="votre adresse personnelle
 "
-                />
-                <InputForm
-                  label="Résidence Administative"
-                  placeholder="résidence administative"
-                />
-              </div>
+              />
+              <InputForm
+                label="Résidence Administative"
+                placeholder="résidence administative"
+              />
             </div>
           </div>
         </form>

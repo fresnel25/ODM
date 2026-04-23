@@ -14,17 +14,21 @@ const ModalForm = ({ children, titre, isOpen, onClose }) => {
 
   return (
     <dialog ref={dialogRef} className="modal" onClose={onClose}>
-      <div className="modal-box w-11/12 max-w-5xl bg-base-100">
-        {/* Header */}
-        <div className="bg-base-300 px-6 py-4 w-full">
-          <h3 className="font-bold text-lg">{titre}</h3>
+      <div className="modal-box w-full max-w-4xl p-0">
+       
+        <div className="px-6 py-4 border-b bg-base-100 border-base-300">
+          <h2 className="text-xl font-semibold text-base-content text-center">
+            {titre}
+          </h2>
         </div>
 
-        {/* Content */}
-        <div className="py-4 mt-5">{children}</div>
+        
+        <div className="bg-base-300 flex justify-center items-center p-6">
+          <div className="w-full max-w-2xl">{children}</div>
+        </div>
 
-        {/* Actions */}
-        <div className="modal-action">
+        
+        <div className="modal-action px-6 pb-6">
           <ButtonForm onClick={onClose} title={"fermer"} />
         </div>
       </div>

@@ -8,7 +8,7 @@ const SelectInput = ({
   
 }) => {
   return (
-    <fieldset className="fieldset">
+    <fieldset className="fieldset w-full xl:w-96">
       <label className="label text-lg flex items-center gap-2">
         {icon && <span>{icon}</span>}
         <span>{label}</span>
@@ -16,7 +16,7 @@ const SelectInput = ({
 
       <select
       
-        className="select shadow-xl text-base-content rounded-xl w-96"
+        className="select shadow-xl text-base-content rounded-xl"
         value={value}
         onChange={(e) => onChange && onChange(e.target.value)}
       >

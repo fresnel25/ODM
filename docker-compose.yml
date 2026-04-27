@@ -1,0 +1,48 @@
+services:
+  db:
+    image: mysql:8
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mydb
+    ports:
+      - "3308:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  backend:
+    build: 
+      context: ./ODM_Backend
+    container_name: backend
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+  frontend:
+    build: 
+      context: ./ODM_Frontend
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./ODM_Frontend:/app
+      - /app/node_modules
+    stdin_open: true
+    tty: true
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    depends_on:
+      - db
+    ports:
+      - "8082:80"
+    environment:
+      PMA_HOST: db
+
+volumes:
+  db_data:

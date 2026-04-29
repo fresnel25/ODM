@@ -3,6 +3,9 @@ package org.example.odm_backend.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.odm_backend.enums.Etat;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,13 +13,16 @@ import java.util.List;
 
 @Entity
 @Table(name = "cku_missions")
-@NoArgsConstructor @AllArgsConstructor @Getter @Setter @ToString
+@EntityListeners(AuditingEntityListener.class)
+@NoArgsConstructor @AllArgsConstructor @Getter @Setter
+@EqualsAndHashCode(of = "id")
+@ToString(exclude = {"motif", "user", "projet"})
 public class Mission {
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
 
-        @OneToMany(fetch = FetchType.LAZY)
+        @OneToMany(mappedBy = "mission", fetch = FetchType.LAZY)
         private List<Transport> transports = new ArrayList<>();
 
         @ManyToOne
@@ -79,6 +85,13 @@ public class Mission {
 
         @Column(name = "date_pec")
         private LocalDateTime datePec;
+
+        @CreatedDate
+        @Column(nullable = false, updatable = false)
+        private LocalDateTime createdAt;
+
+        @LastModifiedDate
+        private LocalDateTime updatedAt;
 
 
 

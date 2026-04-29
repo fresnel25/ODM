@@ -4,17 +4,20 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "cku_motifs")
-@AllArgsConstructor @NoArgsConstructor @Getter @Setter @ToString
+@EntityListeners(AuditingEntityListener.class)
+@AllArgsConstructor @NoArgsConstructor @Getter @Setter
+@EqualsAndHashCode(of = "id")
 public class Motif {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(name = "nom_motif")
     private String nomMotif;

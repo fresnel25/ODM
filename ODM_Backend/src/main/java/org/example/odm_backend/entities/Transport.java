@@ -5,17 +5,21 @@ import lombok.*;
 import org.example.odm_backend.enums.TypeTransport;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "cku_transports")
-@NoArgsConstructor @AllArgsConstructor @Setter @Getter @Builder @ToString
+@EntityListeners(AuditingEntityListener.class)
+@NoArgsConstructor @AllArgsConstructor @Setter @Getter @Builder
+@EqualsAndHashCode(of = "id")
+@ToString(exclude = "mission")
 public class Transport {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "mission_id")

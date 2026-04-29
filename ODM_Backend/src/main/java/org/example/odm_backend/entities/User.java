@@ -6,17 +6,21 @@ import org.example.odm_backend.enums.Role;
 import org.example.odm_backend.enums.TypePersonel;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "cku_users")
-@NoArgsConstructor @AllArgsConstructor @Getter @Setter @ToString @Builder
+@NoArgsConstructor @AllArgsConstructor @Getter @Setter @Builder
+@EqualsAndHashCode(of = "id")
 public class User {
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Integer id;
+        private Long id;
 
         @Column(name = "role")
         @Enumerated(EnumType.STRING)
@@ -31,6 +35,7 @@ public class User {
         @Column(name = "email")
         private String email;
 
+        @ToString.Exclude
         @Column(name = "passwd")
         private String passwd;
 

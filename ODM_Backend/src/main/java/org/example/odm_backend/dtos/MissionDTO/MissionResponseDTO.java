@@ -1,6 +1,5 @@
 package org.example.odm_backend.dtos.MissionDTO;
 
-import org.example.odm_backend.dtos.TransportDTO.TransportRequestDTO;
 import org.example.odm_backend.enums.Etat;
 import org.example.odm_backend.enums.TypeTransport;
 
@@ -10,7 +9,6 @@ import java.util.List;
 public record MissionResponseDTO(
 
         Long id,
-        List<String> transports,
         String motif,
         String user,
         String projet,
@@ -25,6 +23,7 @@ public record MissionResponseDTO(
         Integer nbRepas,
         Boolean billetAgence,
         String commentaireTransport,
+        List<String> typeTransport,
 
         String adEntiteDemandante,
         String adAllerTrajet,

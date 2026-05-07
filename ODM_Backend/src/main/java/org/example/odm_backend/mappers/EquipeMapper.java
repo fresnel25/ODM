@@ -7,6 +7,8 @@ import org.example.odm_backend.entities.Projet;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface EquipeMapper {
 
@@ -15,8 +17,12 @@ public interface EquipeMapper {
     EquipeResponseDTO toResponse(Equipe equipe);
 
     // Conversion Projet → String
-    default String map(Projet projet) {
-        return projet != null ? projet.getNomProjet() : null;
+    default List<String> map(List<Projet> projets) {
+        if (projets == null) return null;
+
+        return projets.stream()
+                .map(Projet::getNomProjet)
+                .toList();
     }
 
     // Request → Entity

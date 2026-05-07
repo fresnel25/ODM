@@ -18,6 +18,10 @@ public record UserResponseDTO(
         LocalDate dateNaissance,
 
         Boolean actif,
-        String role
+        String role,
+
+        String imVehicule,
+        Integer pfVehicule,
+        String signatureName
 
 ) {}

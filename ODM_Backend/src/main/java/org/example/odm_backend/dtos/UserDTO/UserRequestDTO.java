@@ -16,6 +16,11 @@ public record UserRequestDTO(
         TypePersonel personnelType,
 
         String grade,
-        LocalDate dateNaissance
+        LocalDate dateNaissance,
+
+        String imVehicule,
+        Integer pfVehicule,
+        String signatureName
+
 
 ) {}

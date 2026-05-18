@@ -3,7 +3,6 @@ package org.example.odm_backend.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.odm_backend.enums.Etat;
-import org.example.odm_backend.enums.TypeTransport;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -23,14 +22,8 @@ public class Mission {
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
 
-        @ElementCollection
-        @CollectionTable(
-                name = "mission_type_transport",
-                joinColumns = @JoinColumn(name = "mission_id")
-        )
-        @Column(name = "type_transport")
-        @Enumerated(EnumType.STRING)
-        private List<TypeTransport> typeTransport;
+        @OneToMany(mappedBy = "mission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+        private List<Transport> transports = new ArrayList<>();
 
         @ManyToOne
         @JoinColumn(name = "motif_id")

@@ -1,25 +1,31 @@
 package org.example.odm_backend.services.serviceImpl;
 
 import lombok.RequiredArgsConstructor;
-import org.example.odm_backend.dtos.UserDTO.UserFilterDTO;
-import org.example.odm_backend.dtos.UserDTO.UserRequestDTO;
-import org.example.odm_backend.dtos.UserDTO.UserResponseDTO;
+import org.example.odm_backend.dtos.UserDTO.*;
 import org.example.odm_backend.entities.Equipe;
 import org.example.odm_backend.entities.User;
+import org.example.odm_backend.enums.AuthProvider;
 import org.example.odm_backend.enums.Role;
 import org.example.odm_backend.exceptions.DuplicateResourceException;
 import org.example.odm_backend.exceptions.NotFoundException;
+import org.example.odm_backend.exceptions.ValidationException;
 import org.example.odm_backend.repositories.EquipeRepository;
 import org.example.odm_backend.repositories.UserRepository;
+import org.example.odm_backend.security.JwtService;
 import org.example.odm_backend.services.serviceInterface.UserService;
 import org.example.odm_backend.mappers.UserMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -30,12 +36,17 @@ public class UserServiceImpl implements UserService {
     private final EquipeRepository equipeRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     @Override
     public UserResponseDTO create(UserRequestDTO dto) {
 
         if (userRepository.existsByEmail(dto.email())) {
             throw new DuplicateResourceException("Email déjà utilisé");
+        }
+        if (dto.password() == null || dto.password().isBlank()) {
+            throw new ValidationException("Mot de passe obligatoire");
         }
 
         User user = userMapper.toEntity(dto);
@@ -50,9 +61,11 @@ public class UserServiceImpl implements UserService {
             user.setEquipe(equipe);
         }
 
+
         // valeurs par défaut
         user.setActif(true);
         user.setRole(Role.USER);
+        user.setAuthProvider(AuthProvider.LOCAL);
 
         user = userRepository.save(user);
 
@@ -114,4 +127,36 @@ public class UserServiceImpl implements UserService {
         ).map(userMapper::toResponse);
     }
 
+    public LocalAuthResponseDTO login(LocalAuthRequestDTO dto) {
+
+        User user = userRepository.findByEmail(dto.email()).orElseThrow(() -> new NotFoundException("Utilisateur introuvable"));
+
+        // Empêcher login LOCAL sur compte CAS
+        if (user.getAuthProvider() == AuthProvider.CAS) { throw new BadCredentialsException(" Utilisez le login CAS");}
+
+        Authentication authentication =
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                dto.email(),
+                                dto.password()
+                        )
+                );
+
+        System.out.println("Après authenticate");
+
+        System.out.println("Avant JWT");
+
+
+        String token = jwtService.generateToken(user);
+
+        System.out.println("Après JWT");
+
+        return new LocalAuthResponseDTO(
+                token,
+                user.getId(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.getActif()
+        );
+    }
 }

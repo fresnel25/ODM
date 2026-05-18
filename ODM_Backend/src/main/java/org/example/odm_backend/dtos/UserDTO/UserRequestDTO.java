@@ -10,7 +10,7 @@ public record UserRequestDTO(
         String name,
         String email,
 
-        String password, // utilisé uniquement à la création
+        String password,
 
         Long equipeId,
         TypePersonel personnelType,

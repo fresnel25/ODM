@@ -1,12 +1,11 @@
 package org.example.odm_backend.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.odm_backend.dtos.UserDTO.UserFilterDTO;
-import org.example.odm_backend.dtos.UserDTO.UserRequestDTO;
-import org.example.odm_backend.dtos.UserDTO.UserResponseDTO;
+import org.example.odm_backend.dtos.UserDTO.*;
 import org.example.odm_backend.services.serviceInterface.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,11 +16,6 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-
-    @PostMapping
-    public UserResponseDTO create(@RequestBody UserRequestDTO dto) {
-        return userService.create(dto);
-    }
 
     @PutMapping("/{id}")
     public UserResponseDTO update(@PathVariable Long id,

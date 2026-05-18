@@ -12,6 +12,7 @@ public record MissionResponseDTO(
         String motif,
         String user,
         String projet,
+        List<String> transports,
 
         String complementMotif,
         String lieu,
@@ -23,7 +24,7 @@ public record MissionResponseDTO(
         Integer nbRepas,
         Boolean billetAgence,
         String commentaireTransport,
-        List<String> typeTransport,
+
 
         String adEntiteDemandante,
         String adAllerTrajet,

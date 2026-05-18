@@ -2,6 +2,7 @@ package org.example.odm_backend.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.odm_backend.enums.AuthProvider;
 import org.example.odm_backend.enums.Role;
 import org.example.odm_backend.enums.TypePersonel;
 import org.springframework.data.annotation.CreatedDate;
@@ -39,6 +40,13 @@ public class User {
         @Column(name = "passwd")
         private String passwd;
 
+        @Column(name = "login_cas")
+        private String loginCas;
+
+        @Column(name = "auth_provider", nullable = false)
+        @Enumerated(EnumType.STRING)
+        private AuthProvider authProvider = AuthProvider.LOCAL;
+
         @Column(name = "adresse_agent_1")
         private String adresseAgent1;
 
@@ -67,9 +75,6 @@ public class User {
 
         @Column(name = "signature_name")
         private String signatureName;
-
-        @Column(name = "login_cas")
-        private String loginCas;
 
         @Column(name = "carte_sncf")
         private String carteSncf;

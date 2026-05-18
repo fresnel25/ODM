@@ -1,8 +1,6 @@
 package org.example.odm_backend.services.serviceInterface;
 
-import org.example.odm_backend.dtos.UserDTO.UserFilterDTO;
-import org.example.odm_backend.dtos.UserDTO.UserRequestDTO;
-import org.example.odm_backend.dtos.UserDTO.UserResponseDTO;
+import org.example.odm_backend.dtos.UserDTO.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -16,4 +14,5 @@ public interface UserService {
     UserResponseDTO getById(Long id);
     // List<UserResponseDTO> getAll();
     Page<UserResponseDTO> search(UserFilterDTO filter, Pageable pageable);
+    LocalAuthResponseDTO login(LocalAuthRequestDTO dto);
 }

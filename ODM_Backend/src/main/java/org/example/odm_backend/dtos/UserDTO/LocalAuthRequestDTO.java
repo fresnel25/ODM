@@ -1,6 +1,6 @@
 package org.example.odm_backend.dtos.UserDTO;
 
-public record AuthRequestDTO(
+public record LocalAuthRequestDTO(
         String email,
         String password
 ) {}

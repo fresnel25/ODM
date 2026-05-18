@@ -3,6 +3,7 @@ package org.example.odm_backend.mappers;
 import org.example.odm_backend.dtos.MissionDTO.MissionRequestDTO;
 import org.example.odm_backend.dtos.MissionDTO.MissionResponseDTO;
 import org.example.odm_backend.entities.Mission;
+import org.example.odm_backend.entities.Transport;
 import org.example.odm_backend.enums.TypeTransport;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -20,14 +21,14 @@ public interface MissionMapper {
     @Mapping(source = "projet.nomProjet", target = "projet")
     @Mapping(source = "nbNuite", target = "nbNuite")
     @Mapping(source = "nbRepas", target = "nbRepas")
-    @Mapping(target = "typeTransport", expression = "java(mapTypeTransport(mission.getTypeTransport()))")
+    @Mapping(source = "transports", target = "transports")
     MissionResponseDTO toResponse(Mission mission);
 
-    default List<String> mapTypeTransport(List<TypeTransport> types) {
-        if (types == null) return null;
-        return types.stream()
-                .map(Enum::name)
-                .toList();
+    // mapping transport → String
+    default String map(Transport transport) {
+        return transport != null && transport.getTypeTransport() != null
+                ? transport.getTypeTransport().name()
+                : null;
     }
 
 
@@ -39,6 +40,7 @@ public interface MissionMapper {
     @Mapping(target = "projet", ignore = true)
     @Mapping(target = "nbNuite", ignore = true)
     @Mapping(target = "nbRepas", ignore = true)
+    @Mapping(target = "transports", ignore = true)
     void updateMissionFromDto(MissionRequestDTO dto, @MappingTarget Mission mission);
 
 
@@ -51,5 +53,6 @@ public interface MissionMapper {
     @Mapping(target = "projet", ignore = true)
     @Mapping(target = "nbNuite", ignore = true)
     @Mapping(target = "nbRepas", ignore = true)
+    @Mapping(target = "transports", ignore = true)
     Mission toEntity(MissionRequestDTO dto);
 }

@@ -7,6 +7,7 @@ import org.example.odm_backend.dtos.MissionDTO.MissionResponseDTO;
 import org.example.odm_backend.services.serviceInterface.MissionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,8 +40,15 @@ public class MissionController {
         return missionService.getById(id);
     }
 
-    @GetMapping
-    public Page<MissionResponseDTO> getMissionFilter(MissionFilterDTO filter, Pageable pageable) {
-        return missionService.search(filter, pageable);
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETARY')")
+    @GetMapping("/all")
+    public Page<MissionResponseDTO> getAllMissions(MissionFilterDTO filter, Pageable pageable) {
+        return missionService.allMissions(filter, pageable);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/my")
+    public Page<MissionResponseDTO> getMyMissions(MissionFilterDTO filter, Pageable pageable) {
+        return missionService.myMissions(filter, pageable);
     }
 }

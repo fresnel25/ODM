@@ -15,5 +15,6 @@ public interface MissionService {
     void deleteMission(Long id);
     MissionResponseDTO getById(Long id);
    // List<MissionResponseDTO> getAll();
-   Page<MissionResponseDTO> search(MissionFilterDTO filter, Pageable pageable);
+   Page<MissionResponseDTO> allMissions(MissionFilterDTO filter, Pageable pageable);
+   Page<MissionResponseDTO> myMissions(MissionFilterDTO filter, Pageable pageable);
 }

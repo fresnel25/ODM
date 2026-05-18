@@ -1,4 +1,4 @@
-package org.example.odm_backend.config;
+package org.example.odm_backend.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

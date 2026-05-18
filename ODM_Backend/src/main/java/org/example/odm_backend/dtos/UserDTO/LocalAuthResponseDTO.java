@@ -1,8 +1,9 @@
 package org.example.odm_backend.dtos.UserDTO;
 
-public record AuthResponseDTO(
+public record LocalAuthResponseDTO(
         String token,
         Long userId,
         String email,
-        String role
+        String role,
+        Boolean actif
 ) {}

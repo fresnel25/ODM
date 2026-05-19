@@ -11,7 +11,9 @@ import org.example.odm_backend.exceptions.NotFoundException;
 import org.example.odm_backend.exceptions.ValidationException;
 import org.example.odm_backend.repositories.EquipeRepository;
 import org.example.odm_backend.repositories.UserRepository;
-import org.example.odm_backend.security.JwtService;
+import org.example.odm_backend.security.token.jwtToken.JwtService;
+import org.example.odm_backend.security.token.refreshToken.RefreshToken;
+import org.example.odm_backend.security.token.refreshToken.RefreshTokenService;
 import org.example.odm_backend.services.serviceInterface.UserService;
 import org.example.odm_backend.mappers.UserMapper;
 import org.springframework.data.domain.Page;
@@ -20,12 +22,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -38,6 +37,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     public UserResponseDTO create(UserRequestDTO dto) {
@@ -127,31 +127,21 @@ public class UserServiceImpl implements UserService {
         ).map(userMapper::toResponse);
     }
 
-    public LocalAuthResponseDTO login(LocalAuthRequestDTO dto) {
+    public ClassicAuthResponseDTO login(ClassicAuthRequestDTO dto) {
 
         User user = userRepository.findByEmail(dto.email()).orElseThrow(() -> new NotFoundException("Utilisateur introuvable"));
 
         // Empêcher login LOCAL sur compte CAS
         if (user.getAuthProvider() == AuthProvider.CAS) { throw new BadCredentialsException(" Utilisez le login CAS");}
 
-        Authentication authentication =
-                authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(
-                                dto.email(),
-                                dto.password()
-                        )
+        Authentication authentication = authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(dto.email(), dto.password())
                 );
 
-        System.out.println("Après authenticate");
-
-        System.out.println("Avant JWT");
-
-
         String token = jwtService.generateToken(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
-        System.out.println("Après JWT");
-
-        return new LocalAuthResponseDTO(
+        return new ClassicAuthResponseDTO(
                 token,
                 user.getId(),
                 user.getEmail(),

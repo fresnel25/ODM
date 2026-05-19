@@ -1,15 +1,13 @@
-package org.example.odm_backend.security;
+package org.example.odm_backend.security.token.jwtToken;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
 import org.example.odm_backend.entities.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -26,7 +24,7 @@ public class JwtService {
         this.expirationTime = expirationTime;
     }
 
-    // creation du token pour le login
+    // creation du token lorsqu’un utilisateur se connecte
     public String generateToken(User user) {
         return Jwts.builder()
                 .setSubject(user.getEmail())
@@ -44,12 +42,12 @@ public class JwtService {
         return extractAllClaims(token).getSubject();
     }
 
-    // Vérification du token lors des requètes
+    // Vérification de la validité du token lors des requètes
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
-
+    // Vérification de l'expiration du token
     private boolean isTokenExpired(String token) {
         return extractAllClaims(token)
                 .getExpiration()

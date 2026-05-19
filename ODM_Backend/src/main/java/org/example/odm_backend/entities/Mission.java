@@ -22,7 +22,7 @@ public class Mission {
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
 
-        @OneToMany(mappedBy = "mission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+        @OneToMany(mappedBy = "mission", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
         private List<Transport> transports = new ArrayList<>();
 
         @ManyToOne

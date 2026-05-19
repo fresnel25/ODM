@@ -5,7 +5,7 @@ import org.example.odm_backend.entities.User;
 import org.example.odm_backend.enums.AuthProvider;
 import org.example.odm_backend.enums.Role;
 import org.example.odm_backend.repositories.UserRepository;
-import org.example.odm_backend.security.JwtService;
+import org.example.odm_backend.security.token.jwtToken.JwtService;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -11,7 +11,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/cas")
 @RequiredArgsConstructor
-public class CasController {
+public class CasAuthController {
 
     private final CasAuthenticationService casService;
     private final CasTicketValidator ticketValidator;

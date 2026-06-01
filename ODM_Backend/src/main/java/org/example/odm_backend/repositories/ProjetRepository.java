@@ -7,15 +7,28 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface ProjetRepository extends JpaRepository<Projet, Long> {
 
     @Query("""
         SELECT p FROM Projet p
         WHERE (:nomProjet IS NULL OR LOWER(p.nomProjet) LIKE LOWER(CONCAT('%', :nomProjet, '%')))
     """)
-
     Page<Projet> search(
             @Param("nomProjet") String nomProjet,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT DISTINCT p
+        FROM Projet p
+        LEFT JOIN FETCH p.equipes
+        WHERE p.id = :id
+    """)
+    Optional<Projet> findByIdWithEquipes(Long id);
+
+    List<Projet> findByEquipes_Id(Long equipeId);
+
 }

@@ -1,17 +1,18 @@
 package org.example.odm_backend.services.serviceImpl;
 
 import lombok.RequiredArgsConstructor;
-import org.example.odm_backend.dtos.MissionDTO.MissionFilterDTO;
-import org.example.odm_backend.dtos.MissionDTO.MissionRequestDTO;
-import org.example.odm_backend.dtos.MissionDTO.MissionResponseDTO;
+import org.example.odm_backend.dtos.MissionDTO.*;
 import org.example.odm_backend.dtos.TransportDTO.TransportRequestDTO;
 import org.example.odm_backend.entities.*;
+import org.example.odm_backend.enums.Etat;
+import org.example.odm_backend.enums.Role;
 import org.example.odm_backend.exceptions.NotFoundException;
 import org.example.odm_backend.exceptions.ValidationException;
 import org.example.odm_backend.mappers.MissionMapper;
 import org.example.odm_backend.mappers.TransportMapper;
 import org.example.odm_backend.repositories.*;
 import org.example.odm_backend.security.config.SecurityUtils;
+import org.example.odm_backend.services.emailService.MissionNotificationService;
 import org.example.odm_backend.services.serviceInterface.MissionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +37,7 @@ public class MissionServiceImpl implements MissionService {
     private final MissionMapper missionMapper;
     private final TransportMapper transportMapper;
     private final SecurityUtils securityUtils;
+    private final MissionNotificationService missionNotificationService;
 
     private int calculerNbNuite(LocalDateTime dateD, LocalDateTime dateR) {
         return (int) ChronoUnit.DAYS.between(
@@ -85,57 +87,84 @@ public class MissionServiceImpl implements MissionService {
     @Override
     public MissionResponseDTO addMission(MissionRequestDTO dto) {
 
-        if (dto.dateR().isBefore(dto.dateD())) {
-            throw new ValidationException("dateR doit être après dateD");
-        }
+        if (dto.dateR().isBefore(dto.dateD())) {throw new ValidationException("La date de retour doit être après la date de départ");}
+
+        // USER CONNECTÉ
+        User user = securityUtils.getCurrentUserEntity();
+        if (user.getEquipe() == null) {throw new ValidationException("Aucune équipe associée à l'utilisateur");}
 
         Mission mission = missionMapper.toEntity(dto);
         mission.setDateD(dto.dateD());
         mission.setDateR(dto.dateR());
 
-        calculerFrais(mission);
+        // USER AUTOMATIQUE
+        mission.setUser(user);
 
-        if (dto.motifId() != null) {
-            Motif motif = motifRepository.findById(dto.motifId()).orElseThrow(() -> new NotFoundException("Motif non trouvé"));
-            mission.setMotif(motif);
-        }
+        // MOTIF
+        if (dto.motifId() != null) {Motif motif = motifRepository.findById(dto.motifId()).orElseThrow(() -> new NotFoundException("Motif non trouvé"));mission.setMotif(motif);}
 
-        User user = null;
-
-        if (dto.userId() != null) {
-             user = userRepository.findById(dto.userId()).orElseThrow(() -> new NotFoundException("User non trouvé"));
-            mission.setUser(user);
-        }
-
+        // PROJET
         if (dto.projetId() != null) {
-            Projet projet = projetRepository.findById(dto.projetId()).orElseThrow(() -> new NotFoundException("Projet non trouvé"));
+            Projet projet = projetRepository.findById(dto.projetId())
+                    .orElseThrow(() ->
+                            new NotFoundException("Projet non trouvé"));
+
+            // Vérifie que le projet appartient bien
+            // à l'équipe du user connecté
+            boolean hasAccess = projet.getEquipes()
+                    .stream()
+                    .anyMatch(e ->
+                            e.getId().equals(user.getEquipe().getId()));
+
+            if (!hasAccess) {
+                throw new ValidationException(
+                        "Ce projet n'appartient pas à votre équipe"
+                );
+            }
+
             mission.setProjet(projet);
         }
 
+        calculerFrais(mission);
+
         // TRANSPORTS
         List<Transport> transports = new ArrayList<>();
-
         if (dto.transports() != null) {
+
             for (TransportRequestDTO transportDTO : dto.transports()) {
-                Transport transport = transportMapper.toEntity(transportDTO);
+
+                Transport transport =
+                        transportMapper.toEntity(transportDTO);
+
                 transport.setMission(mission);
+
                 switch (transportDTO.typeTransport()) {
+
                     case VP -> {
-                        if (user == null) {
-                            throw new ValidationException("Un utilisateur est obligatoire pour VP");
-                        }
-                        if (user.getImVehicule() == null || user.getPfVehicule() == null) {
-                            throw new ValidationException("Le véhicule personnel du user est incomplet");
+
+                        if (user.getImVehicule() == null
+                                || user.getPfVehicule() == null) {
+
+                            throw new ValidationException(
+                                    "Votre véhicule personnel est incomplet"
+                            );
                         }
 
-                        // copie snapshot user -> transport
+                        // snapshot véhicule personnel
                         transport.setImVehicule(user.getImVehicule());
                         transport.setPfVehicule(user.getPfVehicule());
                     }
+
                     case VS -> {
-                        if (transportDTO.imVehicule() == null || transportDTO.pfVehicule() == null) {
-                            throw new ValidationException("Les informations véhicule sont obligatoires pour VS");
+
+                        if (transportDTO.imVehicule() == null
+                                || transportDTO.pfVehicule() == null) {
+
+                            throw new ValidationException(
+                                    "Les informations du véhicule sont obligatoires"
+                            );
                         }
+
                         transport.setImVehicule(transportDTO.imVehicule());
                         transport.setPfVehicule(transportDTO.pfVehicule());
                     }
@@ -152,75 +181,123 @@ public class MissionServiceImpl implements MissionService {
         mission.setTransports(transports);
         mission = missionRepository.save(mission);
 
+        //envoie de mail
+        missionNotificationService.notifyMissionCreated(mission, user);
+
         return missionMapper.toResponse(mission);
     }
 
     @Override
     public MissionResponseDTO updateMission(Long id, MissionRequestDTO dto) {
 
-        // Vérification mission
         Mission mission = missionRepository.findById(id).orElseThrow(() -> new NotFoundException("Mission non trouvée"));
 
+        // USER CONNECTÉ
+        User currentUser = securityUtils.getCurrentUserEntity();
+
+        // Vérifie propriétaire mission
+        if (!mission.getUser().getId().equals(currentUser.getId())) {
+            throw new ValidationException(
+                    "Vous ne pouvez modifier que vos missions"
+            );
+        }
+
+        // Mission déjà validée
+        if (mission.getEtat() == Etat.VALIDE) {
+            throw new ValidationException(
+                    "Mission déjà validée, modification impossible"
+            );
+        }
+
+        // Vérification dates
         LocalDateTime dateD = dto.dateD() != null ? dto.dateD() : mission.getDateD();
         LocalDateTime dateR = dto.dateR() != null ? dto.dateR() : mission.getDateR();
 
-        if (dateR.isBefore(dateD)) {throw new ValidationException("dateR doit être après dateD");}
+        if (dateR.isBefore(dateD)) {throw new ValidationException(
+                "La date de retour doit être après la date de départ"
+            );
+        }
 
-        // update champs
+        // UPDATE SIMPLE CHAMPS
         missionMapper.updateMissionFromDto(dto, mission);
 
         mission.setDateD(dateD);
         mission.setDateR(dateR);
 
-        calculerFrais(mission);
+        // USER FIXE
+        mission.setUser(currentUser);
 
-        // update relations
+        // MOTIF
         if (dto.motifId() != null) {
-            Motif motif = motifRepository.findById(dto.motifId()).orElseThrow(() -> new NotFoundException("Motif non trouvé"));
+            Motif motif = motifRepository.findById(dto.motifId())
+                    .orElseThrow(() ->
+                            new NotFoundException("Motif non trouvé"));
             mission.setMotif(motif);
         }
 
-        User user = mission.getUser();
-
-        if (dto.userId() != null) {
-            user = userRepository.findById(dto.userId()).orElseThrow(() -> new NotFoundException("User non trouvé"));
-            mission.setUser(user);
-        }
-
+        // PROJET
         if (dto.projetId() != null) {
-            Projet projet = projetRepository.findById(dto.projetId()).orElseThrow(() -> new NotFoundException("Projet non trouvé"));
+            Projet projet = projetRepository.findById(dto.projetId())
+                    .orElseThrow(() ->
+                            new NotFoundException("Projet non trouvé"));
+
+            // Vérifie projet appartient à l'équipe
+            boolean hasAccess = projet.getEquipes()
+                    .stream()
+                    .anyMatch(e ->
+                            e.getId().equals(currentUser.getEquipe().getId()));
+
+            if (!hasAccess) {
+                throw new ValidationException(
+                        "Ce projet n'appartient pas à votre équipe"
+                );
+            }
             mission.setProjet(projet);
         }
 
-        // UPDATE TRANSPORTS
-        mission.getTransports().clear();
+        calculerFrais(mission);
 
+        // RESET TRANSPORTS
+        mission.getTransports().clear();
+        // TRANSPORTS
         if (dto.transports() != null) {
+
             for (TransportRequestDTO transportDTO : dto.transports()) {
                 Transport transport = transportMapper.toEntity(transportDTO);
+
                 transport.setMission(mission);
+
                 switch (transportDTO.typeTransport()) {
-
                     case VP -> {
-                        if (user == null) {
-                            throw new ValidationException("Un utilisateur est obligatoire pour VP");
+                        if (currentUser.getImVehicule() == null
+                                || currentUser.getPfVehicule() == null) {
+                            throw new ValidationException(
+                                    "Votre véhicule personnel est incomplet"
+                            );
                         }
-
-                        if (user.getImVehicule() == null || user.getPfVehicule() == null) {
-                            throw new ValidationException("Le véhicule personnel du user est incomplet");
-                        }
-
-                        transport.setImVehicule(user.getImVehicule());
-                        transport.setPfVehicule(user.getPfVehicule());
+                        // snapshot véhicule personnel
+                        transport.setImVehicule(
+                                currentUser.getImVehicule()
+                        );
+                        transport.setPfVehicule(
+                                currentUser.getPfVehicule()
+                        );
                     }
+
                     case VS -> {
+                        if (transportDTO.imVehicule() == null
+                                || transportDTO.pfVehicule() == null) {
 
-                        if (transportDTO.imVehicule() == null || transportDTO.pfVehicule() == null) {
-                            throw new ValidationException("Les informations véhicule sont obligatoires pour VS");
+                            throw new ValidationException(
+                                    "Les informations du véhicule sont obligatoires"
+                            );
                         }
-
-                        transport.setImVehicule(transportDTO.imVehicule());
-                        transport.setPfVehicule(transportDTO.pfVehicule());
+                        transport.setImVehicule(
+                                transportDTO.imVehicule()
+                        );
+                        transport.setPfVehicule(
+                                transportDTO.pfVehicule()
+                        );
                     }
 
                     default -> {
@@ -228,10 +305,10 @@ public class MissionServiceImpl implements MissionService {
                         transport.setPfVehicule(null);
                     }
                 }
+
                 mission.getTransports().add(transport);
             }
         }
-
 
         mission = missionRepository.save(mission);
 
@@ -254,7 +331,6 @@ public class MissionServiceImpl implements MissionService {
         return missionMapper.toResponse(mission);
     }
 
-
     @Override
     public Page<MissionResponseDTO> allMissions(MissionFilterDTO filter, Pageable pageable) {
         return missionRepository.search(
@@ -274,5 +350,71 @@ public class MissionServiceImpl implements MissionService {
                         pageable
                 )
                 .map(missionMapper::toResponse);
+    }
+
+    @Transactional
+    @Override
+    public MissionResponseDTO validateMission(Long missionId, MissionValidationDTO dto) {
+
+        User currentUser = securityUtils.getCurrentUserEntity();
+
+        if (currentUser.getRole() != Role.ADMIN) {throw new ValidationException("Accès refusé");}
+
+        Mission mission = missionRepository.findById(missionId).orElseThrow(() -> new NotFoundException("Mission introuvable"));
+
+        if (mission.getUser() == null ||
+                mission.getUser().getEquipe() == null ||
+                currentUser.getEquipe() == null ||
+                !mission.getUser().getEquipe().getId()
+                        .equals(currentUser.getEquipe().getId())) {
+
+            throw new ValidationException("Vous ne pouvez pas valider cette mission");
+        }
+
+        if (mission.getEtat() != Etat.SOUMIS) {
+            throw new ValidationException("Mission déjà traitée");
+        }
+
+        mission.setEtat(Etat.VALIDE);
+
+        mission = missionRepository.save(mission);
+
+        // Mail après validation
+        missionNotificationService.notifyMissionValidated(mission, currentUser);
+
+        return missionMapper.toResponse(mission);
+    }
+
+    @Transactional
+    @Override
+    public MissionResponseDTO processMission(Long missionId, MissionProcessDTO dto) {
+
+        User currentUser = securityUtils.getCurrentUserEntity();
+
+        if (currentUser.getRole() != Role.SECRETARY) {
+            throw new ValidationException("Accès refusé");
+        }
+
+        Mission mission = missionRepository.findById(missionId)
+                .orElseThrow(() -> new NotFoundException("Mission introuvable"));
+
+        if (mission.getEtat() != Etat.VALIDE) {
+            throw new ValidationException("Mission non validée");
+        }
+
+        if (mission.getDatePec() != null) {
+            throw new ValidationException("Mission déjà traitée");
+        }
+
+        mission.setDatePec(dto.datePec());
+
+        mission = missionRepository.save(mission);
+
+        missionNotificationService.notifyDatePecUpdated(
+                mission,
+                currentUser
+        );
+
+        return missionMapper.toResponse(mission);
     }
 }

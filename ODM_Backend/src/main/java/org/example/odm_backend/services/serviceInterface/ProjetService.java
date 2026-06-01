@@ -15,4 +15,6 @@ public interface ProjetService {
     ProjetResponseDTO getById(Long id);
     //List<ProjetResponseDTO> getAll();
     Page<ProjetResponseDTO> search(ProjetFilterDTO filter, Pageable pageable);
+
+    List<ProjetResponseDTO> getProjectsByCurrentUserEquipe();
 }

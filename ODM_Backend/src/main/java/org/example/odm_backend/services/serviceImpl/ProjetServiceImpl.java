@@ -1,15 +1,19 @@
 package org.example.odm_backend.services.serviceImpl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.odm_backend.dtos.ProjetDTO.ProjetFilterDTO;
 import org.example.odm_backend.dtos.ProjetDTO.ProjetRequestDTO;
 import org.example.odm_backend.dtos.ProjetDTO.ProjetResponseDTO;
 import org.example.odm_backend.entities.Equipe;
 import org.example.odm_backend.entities.Projet;
+import org.example.odm_backend.entities.User;
 import org.example.odm_backend.exceptions.NotFoundException;
+import org.example.odm_backend.exceptions.ValidationException;
 import org.example.odm_backend.mappers.ProjetMapper;
 import org.example.odm_backend.repositories.EquipeRepository;
 import org.example.odm_backend.repositories.ProjetRepository;
+import org.example.odm_backend.security.config.SecurityUtils;
 import org.example.odm_backend.services.serviceInterface.ProjetService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,11 +23,13 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ProjetServiceImpl implements ProjetService {
 
     private final ProjetRepository projetRepository;
     private final ProjetMapper projetMapper;
     private final EquipeRepository equipeRepository;
+    private final SecurityUtils securityUtils;
 
     @Override
     public ProjetResponseDTO addProjet(ProjetRequestDTO dto) {
@@ -73,7 +79,7 @@ public class ProjetServiceImpl implements ProjetService {
 
     @Override
     public ProjetResponseDTO getById(Long id) {
-        Projet projet = projetRepository.findById(id)
+        Projet projet = projetRepository.findByIdWithEquipes(id)
                 .orElseThrow(() -> new NotFoundException("Projet non trouvé"));
 
         return projetMapper.toResponse(projet);
@@ -85,5 +91,24 @@ public class ProjetServiceImpl implements ProjetService {
                 filter.nomProjet(),
                 pageable
         ).map(projetMapper::toResponse);
+    }
+
+
+    @Override
+    public List<ProjetResponseDTO> getProjectsByCurrentUserEquipe() {
+
+        User user = securityUtils.getCurrentUserEntity();
+
+        if (user.getEquipe() == null) {
+            throw new ValidationException(
+                    "Aucune équipe associée à l'utilisateur"
+            );
+        }
+
+        List<Projet> projets = projetRepository.findByEquipes_Id(user.getEquipe().getId());
+
+        return projets.stream()
+                .map(projetMapper::toResponse)
+                .toList();
     }
 }

@@ -1,5 +1,6 @@
 package org.example.odm_backend.dtos.MissionDTO;
 
+import jakarta.validation.constraints.NotBlank;
 import org.example.odm_backend.dtos.TransportDTO.TransportRequestDTO;
 import org.example.odm_backend.enums.Etat;
 
@@ -9,8 +10,10 @@ import java.util.List;
 public record MissionRequestDTO(
 
 
+        @NotBlank(message = "motif oublié")
         Long motifId,
         Long userId,
+        @NotBlank(message = "projet oublié")
         Long projetId,
         List<TransportRequestDTO> transports,
 

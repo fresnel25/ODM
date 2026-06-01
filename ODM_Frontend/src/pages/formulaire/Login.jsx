@@ -4,10 +4,29 @@ import ImageForm from "../../components/composant_formulaire/ImageForm";
 import TitleForm from "../../components/composant_formulaire/TitleForm";
 import image1 from "../../../public/assets/img-tour.svg";
 import { useState } from "react";
+import { useAuth } from "../../services/context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const { login } = useAuth();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await login(email, password);
+      toast.success("Connexion réussie");
+      console.log("Connexion réussie");
+      navigate("/dashboard");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Erreur de connexion");
+      console.log(err.response?.data?.message);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -26,8 +45,9 @@ const Login = () => {
         {/* Colonne formulaire */}
         <div className="card-body p-5 m-0 flex flex-col gap-7 justify-center">
           <TitleForm title={"Connexion"} />
-          <form className="flex flex-col gap-4">
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <InputForm
+              type="rmail"
               label="Email"
               placeholder="Entrer votre email"
               value={email}

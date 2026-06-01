@@ -1,12 +1,13 @@
 package org.example.odm_backend.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.odm_backend.dtos.MissionDTO.MissionFilterDTO;
-import org.example.odm_backend.dtos.MissionDTO.MissionRequestDTO;
-import org.example.odm_backend.dtos.MissionDTO.MissionResponseDTO;
+import org.example.odm_backend.common.ApiResponse;
+import org.example.odm_backend.dtos.MissionDTO.*;
+import org.example.odm_backend.enums.Etat;
 import org.example.odm_backend.services.serviceInterface.MissionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,35 +21,114 @@ public class MissionController {
     private final MissionService missionService;
 
     @PostMapping
-    public MissionResponseDTO create(@RequestBody MissionRequestDTO dto) {
-        return missionService.addMission(dto);
+    public ResponseEntity<ApiResponse<MissionResponseDTO>> create(@RequestBody MissionRequestDTO dto) {
+        MissionResponseDTO result = missionService.addMission(dto);
+        return ResponseEntity.status(201).body(
+                new ApiResponse<>(
+                        true,
+                        "Mission créée avec succès",
+                        result,
+                        null
+                )
+        );
     }
 
     @PutMapping("/{id}")
-    public MissionResponseDTO update(@PathVariable Long id,
-                                     @RequestBody MissionRequestDTO dto) {
-        return missionService.updateMission(id, dto);
+    public ResponseEntity<ApiResponse<MissionResponseDTO>> update(@PathVariable Long id, @RequestBody MissionRequestDTO dto) {
+        MissionResponseDTO result =  missionService.updateMission(id, dto);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Mission mise à jour",
+                        result,
+                        null
+                )
+        );
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         missionService.deleteMission(id);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Mission Supprimée",
+                        null,
+                        null
+                )
+        );
     }
 
     @GetMapping("/{id}")
-    public MissionResponseDTO getById(@PathVariable Long id) {
-        return missionService.getById(id);
+    public ResponseEntity<ApiResponse<MissionResponseDTO>> getById(@PathVariable Long id) {
+        MissionResponseDTO result = missionService.getById(id);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Mission Récupérée",
+                        result,
+                        null
+                )
+        );
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','SECRETARY')")
     @GetMapping("/all")
-    public Page<MissionResponseDTO> getAllMissions(MissionFilterDTO filter, Pageable pageable) {
-        return missionService.allMissions(filter, pageable);
+    public ResponseEntity<ApiResponse<Page<MissionResponseDTO>>> getAllMissions(MissionFilterDTO filter, Pageable pageable) {
+        Page<MissionResponseDTO> page = missionService.allMissions(filter, pageable);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Liste des Missions",
+                        page,
+                        null
+                )
+        );
     }
 
-    @PreAuthorize("isAuthenticated()")
-    @GetMapping("/my")
-    public Page<MissionResponseDTO> getMyMissions(MissionFilterDTO filter, Pageable pageable) {
-        return missionService.myMissions(filter, pageable);
+    @GetMapping("/myMissions")
+    public ResponseEntity<ApiResponse<Page<MissionResponseDTO>>> getMyMissions(MissionFilterDTO filter, Pageable pageable) {
+        Page<MissionResponseDTO> page = missionService.myMissions(filter, pageable);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Mes Missions ",
+                        page,
+                        null
+                )
+        );
+    }
+
+    @PutMapping("/{id}/validate")
+    public ResponseEntity<ApiResponse<MissionResponseDTO>> validateMission(@PathVariable Long id, @RequestBody MissionValidationDTO dto) {
+
+        MissionResponseDTO response =
+                missionService.validateMission(id, dto);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Mission Validée",
+                        response,
+                        null
+                )
+        );
+    }
+
+    @PutMapping("/{id}/process")
+    public ResponseEntity<ApiResponse<MissionResponseDTO>> processMission(@PathVariable Long id, @RequestBody MissionProcessDTO dto) {
+
+        MissionResponseDTO response =
+                missionService.processMission(id, dto);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Mission traitée",
+                        response,
+                        null
+                )
+        );
     }
 }

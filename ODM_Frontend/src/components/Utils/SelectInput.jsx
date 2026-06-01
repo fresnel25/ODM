@@ -5,7 +5,6 @@ const SelectInput = ({
   placeholder = "Choisir une option",
   value,
   onChange,
-  
 }) => {
   return (
     <fieldset className="fieldset w-full xl:w-96">
@@ -15,17 +14,17 @@ const SelectInput = ({
       </label>
 
       <select
-      
         className="select shadow-xl text-base-content rounded-xl"
-        value={value}
-        onChange={(e) => onChange && onChange(e.target.value)}
+        value={value ?? ""}
+        onChange={(e) => onChange?.(e.target.value)}
       >
-        
-        <option disabled>{placeholder}</option>
+        <option value="" disabled>
+          {placeholder}
+        </option>
 
         {options.map((option, index) => (
-          <option key={index} value={option.value || option}>
-            {option.label || option}
+          <option key={index} value={String(option.value)}>
+            {option.label}
           </option>
         ))}
       </select>

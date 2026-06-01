@@ -1,5 +1,6 @@
 package org.example.odm_backend.services.serviceImpl;
 
+import jakarta.transaction.Transactional;
 import org.example.odm_backend.dtos.EquipeDto.EquipeFilterDTO;
 import org.example.odm_backend.dtos.EquipeDto.EquipeRequestDTO;
 import org.example.odm_backend.dtos.EquipeDto.EquipeResponseDTO;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@Transactional
 public class EquipeServiceImpl implements EquipeService {
 
     private final EquipeRepository equipeRepository;

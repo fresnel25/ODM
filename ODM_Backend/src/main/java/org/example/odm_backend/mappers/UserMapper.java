@@ -21,9 +21,9 @@ public interface UserMapper {
     @Mapping(target = "passwd", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    void updateUserFromDto(UserRequestDTO dto, @MappingTarget User user);
+    User toEntity(UserRequestDTO dto);
 
-    // REQUEST → ENTITY
+    // UPDATE PARTIEL DTO USER → ENTITY EXISTANTE
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "equipe", ignore = true)
     @Mapping(target = "role", ignore = true)
@@ -31,11 +31,14 @@ public interface UserMapper {
     @Mapping(target = "passwd", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    User toEntity(UserRequestDTO dto);
+    void updateUserFromDto(UserRequestDTO dto, @MappingTarget User user);
 
+    // UPDATE PARTIEL DTO ADMIN → ENTITY EXISTANTE
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "equipe", ignore = true)
+    @Mapping(target = "passwd", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    void updateUserAdminFromDto(UserUpdateRequestDTO dto, @MappingTarget User user);
 
-    // UTILS
-    /*default String map(Equipe equipe) {
-        return equipe != null ? equipe.getNomEquipe() : null;
-    }*/
 }

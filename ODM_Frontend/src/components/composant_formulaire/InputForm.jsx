@@ -1,8 +1,9 @@
-const InputForm = ({ label, placeholder, value, onChange, type = "text" }) => (
+const InputForm = ({ name, label, placeholder, value, onChange, type = "text" }) => (
   <div>
     <fieldset className="fieldset w-full xl:w-96 ">
-      <label className="label text-lg">{label}</label>
+      <label className="label text-lg text-base-content">{label}</label>
       <input
+        name={name}
         type={type}
         className="input shadow-xl rounded-xl"
         placeholder={placeholder}

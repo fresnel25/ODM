@@ -7,7 +7,9 @@ import org.example.odm_backend.dtos.MotifDTO.MotifResponseDTO;
 import org.example.odm_backend.entities.Motif;
 import org.example.odm_backend.exceptions.DuplicateResourceException;
 import org.example.odm_backend.exceptions.NotFoundException;
+import org.example.odm_backend.exceptions.ValidationException;
 import org.example.odm_backend.mappers.MotifMapper;
+import org.example.odm_backend.repositories.MissionRepository;
 import org.example.odm_backend.repositories.MotifRepository;
 import org.example.odm_backend.services.serviceInterface.MotifService;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ public class MotifServiceImpl implements MotifService {
 
     private final MotifRepository motifRepository;
     private final MotifMapper motifMapper;
+    private final MissionRepository missionRepository;
 
     @Override
     public MotifResponseDTO addMotif(MotifRequestDTO dto) {
@@ -63,6 +66,11 @@ public class MotifServiceImpl implements MotifService {
         if (!motifRepository.existsById(id)){
             throw new NotFoundException("Motif non trouvé");
         }
+        if (missionRepository.existsByMotifId(id)) {
+            throw new ValidationException(
+                    "Impossible de supprimer ce motif car il est utilisé par une ou plusieurs missions"
+            );
+        }
         motifRepository.deleteById(id);
     }
 
@@ -74,9 +82,8 @@ public class MotifServiceImpl implements MotifService {
     }
 
     @Override
-    public Page<MotifResponseDTO> search(MotifFilterDTO filter, Pageable pageable) {
-        return motifRepository.search(
-                filter.nomMotif(), filter.estDansListe(), pageable
-        ).map(motifMapper::toResponse);
+    public Page<MotifResponseDTO> search(String search, Pageable pageable) {
+        return motifRepository.search(search, pageable)
+                .map(motifMapper::toResponse);
     }
 }

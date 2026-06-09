@@ -2,6 +2,7 @@ package org.example.odm_backend.mappers;
 
 import org.example.odm_backend.dtos.EquipeDto.EquipeRequestDTO;
 import org.example.odm_backend.dtos.EquipeDto.EquipeResponseDTO;
+import org.example.odm_backend.dtos.ProjetDTO.ProjetSimpleDTO;
 import org.example.odm_backend.entities.Equipe;
 import org.example.odm_backend.entities.Projet;
 import org.mapstruct.Mapper;
@@ -16,12 +17,16 @@ public interface EquipeMapper {
     @Mapping(source = "projets", target = "projets")
     EquipeResponseDTO toResponse(Equipe equipe);
 
-    // Conversion Projet → String
-    default List<String> map(List<Projet> projets) {
-        if (projets == null) return null;
-
+    // Projet -> ProjetSimpleDTO
+    default List<ProjetSimpleDTO> map(List<Projet> projets) {
+        if (projets == null) {
+            return List.of();
+        }
         return projets.stream()
-                .map(Projet::getNomProjet)
+                .map(projet -> new ProjetSimpleDTO(
+                        projet.getId(),
+                        projet.getNomProjet()
+                ))
                 .toList();
     }
 

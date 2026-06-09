@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+
+    <style>
+
+        body{
+            font-family: Arial,sans-serif;
+            font-size:12px;
+            color:#1f2937;
+            margin:25px;
+        }
+
+        .attestation-box {
+            border: 1px solid #cbd5e1;
+            padding: 12px;
+            line-height: 1.5;
+            text-align: justify;
+            background: #f8fafc;
+        }
+
+        .header{
+            width:100%;
+            border-bottom:3px solid #1e40af;
+            padding-bottom:10px;
+            margin-bottom:20px;
+        }
+
+        .logo{
+            width:90px;
+            height:90px;
+            object-fit:contain;
+        }
+
+        .company{
+            text-align:right;
+        }
+
+        .company-name{
+            font-size:18px;
+            font-weight:bold;
+            color:#1e40af;
+        }
+
+        .title{
+            text-align:center;
+            font-size:22px;
+            font-weight:bold;
+            color:#1e3a8a;
+            margin:20px 0;
+            padding:10px;
+            border:2px solid #1e40af;
+        }
+
+        .section{
+            margin-bottom:18px;
+        }
+
+        .section-title{
+            background:#1e40af;
+            color:white;
+            padding:8px;
+            font-size:13px;
+            font-weight:bold;
+            margin-bottom:8px;
+        }
+
+        .info-grid{
+            width:100%;
+        }
+
+        .info-grid td{
+            padding:6px;
+            border:1px solid #d1d5db;
+        }
+
+        .label{
+            font-weight:bold;
+            color:#111827;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        table th{
+            background:#dbeafe;
+            color:#1e3a8a;
+            font-weight:bold;
+        }
+
+        table th,
+        table td{
+            border:1px solid #cbd5e1;
+            padding:8px;
+        }
+
+        .signature-container{
+            margin-top:50px;
+            width:100%;
+        }
+
+        .signature-box{
+            width:30%;
+            display:inline-block;
+            text-align:center;
+            vertical-align:top;
+        }
+
+        .signature-img{
+            height:70px;
+            margin-top:10px;
+        }
+
+        .footer{
+            margin-top:30px;
+            border-top:1px solid #d1d5db;
+            text-align:center;
+            font-size:10px;
+            padding-top:8px;
+            color:#6b7280;
+        }
+
+        .badge{
+            display:inline-block;
+            padding:4px 8px;
+            border:1px solid #1e40af;
+            border-radius:4px;
+            font-weight:bold;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+
+<table style="width:100%;">
+    <tr>
+
+        <td style="width:20%;">
+            <img
+                    th:if="${data.logoBase64 != null}"
+                    th:src="${data.logoBase64}"
+                    class="logo"/>
+        </td>
+
+        <td style="width:80%;" class="company">
+
+            <div class="company-name" th:text="${data.companyName}"></div>
+
+            <div th:text="${data.address}"></div>
+            <div th:text="${data.phone}"></div>
+            <div th:text="${data.email}"></div>
+            <div th:text="${data.website}"></div>
+
+        </td>
+
+    </tr>
+</table>
+
+<div class="title">
+    ORDRE DE MISSION N°
+    <span th:text="${data.missionId}"></span>
+</div>
+
+<!-- AGENT -->
+
+<div class="section">
+    <div class="section-title">
+        INFORMATIONS AGENT
+    </div>
+    <table class="info-grid">
+        <tr>
+            <td><span class="label">Nom complet</span></td>
+            <td th:text="${data.agentFullName}"></td>
+
+            <td><span class="label">Email</span></td>
+            <td th:text="${data.agentEmail}"></td>
+        </tr>
+
+        <tr>
+            <td><span class="label">Equipe</span></td>
+            <td th:text="${data.equipe}"></td>
+
+            <td><span class="label">Grade</span></td>
+            <td th:text="${data.grade}"></td>
+        </tr>
+
+        <tr>
+            <td><span class="label">Type personnel</span></td>
+            <td th:text="${data.personnelType}"></td>
+
+            <td><span class="label">Date naissance</span></td>
+            <td th:text="${data.dateNaissance}"></td>
+        </tr>
+
+        <tr>
+            <td><span class="label">Résidence administrative</span></td>
+            <td th:text="${data.residenceAdministrative}"> </td>
+            <td> <span class="label">Adresse personnelle</span></td>
+            <td th:text="${data.adressePersonnelle}"> </td>
+        </tr>
+    </table>
+</div>
+<div class="section">
+    <div class="section-title">
+        ATTESTATION DE L'AGENT
+    </div>
+
+    <div class="attestation-box">
+        <p>
+            Je soussigné(e),
+            <strong th:text="${data.agentFullName}">Nom Prénom</strong>,
+            m'engage à souscrire une police d'assurance garantissant d'une manière illimitée ma responsabilité
+            personnelle aux termes des articles 1382, 1383 et 1384 du Code civil ainsi que, éventuellement,
+            la responsabilité de l'État, dans les conditions définies à l'article 34 du décret n° 90-437 du 28 mai 1990.
+        </p>
+
+        <p>
+            Certifié exact par l'intéressé(e).
+        </p>
+    </div>
+</div>
+
+<!-- MISSION -->
+
+<div class="section">
+
+    <div class="section-title">
+        MISSION
+    </div>
+
+    <table class="info-grid">
+
+        <tr>
+            <td><span class="label">Projet</span></td>
+            <td th:text="${data.projet}"></td>
+
+            <td><span class="label">Etat</span></td>
+            <td>
+<span class="badge"
+      th:text="${data.etat}">
+</span>
+            </td>
+        </tr>
+
+        <tr>
+            <td><span class="label">Motif</span></td>
+            <td th:text="${data.motif}"></td>
+
+            <td><span class="label">Lieu</span></td>
+            <td th:text="${data.lieu}"></td>
+        </tr>
+
+        <tr>
+            <td><span class="label">Départ</span></td>
+            <td th:text="${data.dateDepart}"></td>
+
+            <td><span class="label">Retour</span></td>
+            <td th:text="${data.dateRetour}"></td>
+        </tr>
+
+        <tr>
+            <td><span class="label">Complément</span></td>
+            <td colspan="3"
+                th:text="${data.complementMotif}">
+            </td>
+        </tr>
+
+    </table>
+
+</div>
+
+<!-- FRAIS -->
+
+<div class="section">
+
+    <div class="section-title">
+        FRAIS ET INDEMNITÉS
+    </div>
+
+    <table class="info-grid">
+
+        <tr>
+            <td>Nuitées</td>
+            <td th:text="${data.nbNuite}"></td>
+
+            <td>Repas</td>
+            <td th:text="${data.nbRepas}"></td>
+        </tr>
+
+        <tr>
+            <td>Sans frais</td>
+            <td th:text="${data.sansFrais}"></td>
+
+            <td>Billet agence</td>
+            <td th:text="${data.billetAgence}"></td>
+        </tr>
+
+    </table>
+
+</div>
+
+<!-- TRANSPORT -->
+
+<div class="section">
+
+    <div class="section-title">
+        MOYENS DE TRANSPORT
+    </div>
+
+    <table>
+
+        <thead>
+        <tr>
+            <th>Type</th>
+            <th>Départ</th>
+            <th>Arrivée</th>
+            <th>Immatriculation</th>
+            <th>Puissance</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        <tr th:each="t : ${data.transports}">
+            <td th:text="${t.typeTransport}"></td>
+            <td th:text="${t.adresseDepart}"></td>
+            <td th:text="${t.adresseArrivee}"></td>
+            <td th:text="${t.imVehicule}"></td>
+            <td th:text="${t.pfVehicule}"></td>
+        </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<!-- COMMENTAIRES -->
+
+<div class="section">
+
+    <div class="section-title">
+        COMMENTAIRES TRANSPORT
+    </div>
+
+    <div th:text="${data.commentaireTransport}">
+    </div>
+
+</div>
+
+<!-- SIGNATURES -->
+
+<div class="signature-container">
+
+    <div class="signature-box">
+
+        <div><b>Agent</b></div>
+
+        <img
+                th:if="${data.signatureAgent != null}"
+                th:src="${data.signatureAgent}"
+                class="signature-img"/>
+
+    </div>
+
+    <div class="signature-box">
+        <div><b>Responsable équipe</b></div>
+    </div>
+
+    <div class="signature-box">
+        <div><b>Direction</b></div>
+    </div>
+
+</div>
+
+<div class="footer">
+    <span th:text="${data.textFooter}"></span>
+</div>
+
+</body>
+</html>

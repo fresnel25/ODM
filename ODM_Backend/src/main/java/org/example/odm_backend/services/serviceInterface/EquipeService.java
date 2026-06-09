@@ -15,5 +15,5 @@ public interface EquipeService {
     void deleteEquipe(Long id);
     EquipeResponseDTO getById(Long id);
     // List<EquipeResponseDTO> getAll();
-    Page<EquipeResponseDTO> search(EquipeFilterDTO filter, Pageable pageable);
+    Page<EquipeResponseDTO> search(String search, Pageable pageable);
 }

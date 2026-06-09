@@ -6,6 +6,10 @@ public record TransportResponseDTO(
 
         Long id,
         TypeTransport typeTransport,
+        String adresseDepart,
+        String paysDepart,
+        String adresseArrivee,
+        String paysArrivee,
         String imVehicule,
         Integer pfVehicule
 ) {}

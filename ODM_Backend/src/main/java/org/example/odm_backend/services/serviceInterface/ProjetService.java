@@ -1,6 +1,6 @@
 package org.example.odm_backend.services.serviceInterface;
 
-import org.example.odm_backend.dtos.ProjetDTO.ProjetFilterDTO;
+
 import org.example.odm_backend.dtos.ProjetDTO.ProjetRequestDTO;
 import org.example.odm_backend.dtos.ProjetDTO.ProjetResponseDTO;
 import org.springframework.data.domain.Page;
@@ -14,5 +14,7 @@ public interface ProjetService {
     void deleteProjet(Long id);
     ProjetResponseDTO getById(Long id);
     //List<ProjetResponseDTO> getAll();
-    Page<ProjetResponseDTO> search(ProjetFilterDTO filter, Pageable pageable);
+    Page<ProjetResponseDTO> search(String search, Pageable pageable);
+
+    List<ProjetResponseDTO> getProjectsByCurrentUserEquipe();
 }

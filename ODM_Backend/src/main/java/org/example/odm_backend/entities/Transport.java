@@ -21,7 +21,7 @@ public class Transport {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mission_id")
     private Mission mission;
 
@@ -34,6 +34,20 @@ public class Transport {
 
     @Column(name = "pf_vehicule")
     private Integer pfVehicule;
+
+    @Column(name = "ad_depart")
+    private String adresseDepart;
+    @Column(name = "pays_depart")
+    private String paysDepart;
+    private Double latitudeDepart;
+    private Double longitudeDepart;
+
+    @Column(name = "pays_arrivee")
+    private String paysArrivee;
+    @Column(name = "ad_arrivee")
+    private String adresseArrivee;
+    private Double latitudeArrivee;
+    private Double longitudeArrivee;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

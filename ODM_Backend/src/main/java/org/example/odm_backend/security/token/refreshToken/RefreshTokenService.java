@@ -59,4 +59,9 @@ public class RefreshTokenService {
                     repository.save(t);
                 });
     }
+
+    @Transactional
+    public void deleteTokensByUser(User user) {
+        repository.deleteByUser(user);
+    }
 }

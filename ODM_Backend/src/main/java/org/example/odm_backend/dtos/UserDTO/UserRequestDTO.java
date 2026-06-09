@@ -20,7 +20,8 @@ public record UserRequestDTO(
 
         String imVehicule,
         Integer pfVehicule,
-        String signatureName
-
+        String signatureName,
+        String residenceAdmin2,
+        String adresseAgent1
 
 ) {}

@@ -3,6 +3,8 @@ package org.example.odm_backend.exceptions;
 import org.example.odm_backend.common.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -12,7 +14,7 @@ import java.util.List;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Helper central
+    // Helper central : construit une réponse API standardisée
     private <T> ResponseEntity<ApiResponse<T>> build(
             HttpStatus status,
             String message,
@@ -26,7 +28,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(response);
     }
 
-    // Validation des DTO (@Valid)
+    // Erreurs de validation (@Valid DTO) : champs invalides dans la requête
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
 
@@ -46,10 +48,9 @@ public class GlobalExceptionHandler {
         );
     }
 
-    // Ressource non trouvée
+    // Ressource non trouvée en base de données (id ou email inexistant)
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleNotFound(NotFoundException ex) {
-
         return build(
                 HttpStatus.NOT_FOUND,
                 ex.getMessage(),
@@ -57,10 +58,9 @@ public class GlobalExceptionHandler {
         );
     }
 
-    // Validation incorrecte
+    // Erreur métier ou règle de gestion non respectée
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidate(ValidationException ex) {
-
         return build(
                 HttpStatus.BAD_REQUEST,
                 ex.getMessage(),
@@ -68,11 +68,19 @@ public class GlobalExceptionHandler {
         );
     }
 
+    // Identifiants incorreca la base j'ai ceci : ts (login / password invalide)
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBadCredentials(BadCredentialsException ex) {
+        return build(
+                HttpStatus.UNAUTHORIZED,
+                "Email ou mot de passe incorrect",
+                null
+        );
+    }
 
-    // Conflit (doublon, etc.)
+    // Tentative de création d’une ressource déjà existante (doublon)
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ApiResponse<Void>> handleDuplicate(DuplicateResourceException ex) {
-
         return build(
                 HttpStatus.CONFLICT,
                 ex.getMessage(),
@@ -80,10 +88,20 @@ public class GlobalExceptionHandler {
         );
     }
 
-    // Erreur générique (fallback)
+    // Accès refusé (user authentifié mais sans permissions suffisantes)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException ex) {
+        return build(
+                HttpStatus.FORBIDDEN,
+                "Accès refusé",
+                null
+        );
+    }
+
+    // Erreur inattendue du serveur (fallback global)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneric(Exception ex) {
-
+        ex.printStackTrace();
         return build(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Erreur interne du serveur",

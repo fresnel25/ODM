@@ -58,7 +58,7 @@ public class Mission {
         @Column(name = "nb_repas")
         private Integer nbRepas;
 
-        @ManyToOne
+        @ManyToOne(fetch = FetchType.EAGER)
         @JoinColumn(name = "projet_id")
         private Projet projet;
 
@@ -70,18 +70,6 @@ public class Mission {
 
         @Column(name = "AD_entite_demandante")
         private String adEntiteDemandante;
-
-        @Column(name = "AD_aller_trajet")
-        private String adAllerTrajet;
-
-        @Column(name = "AD_aller_pays")
-        private String adAllerPays;
-
-        @Column(name = "AD_retour_trajet")
-        private String adRetourTrajet;
-
-        @Column(name = "AD_retour_pays")
-        private String adRetourPays;
 
         @Column(name = "date_pec")
         private LocalDateTime datePec;

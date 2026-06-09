@@ -1,19 +1,18 @@
 package org.example.odm_backend.dtos.MissionDTO;
-
+import org.example.odm_backend.dtos.MotifDTO.MotifSimpleDTO;
+import org.example.odm_backend.dtos.ProjetDTO.ProjetSimpleDTO;
+import org.example.odm_backend.dtos.TransportDTO.TransportResponseDTO;
 import org.example.odm_backend.enums.Etat;
 import org.example.odm_backend.enums.TypeTransport;
-
 import java.time.LocalDateTime;
 import java.util.List;
-
 public record MissionResponseDTO(
 
         Long id,
-        String motif,
+        MotifSimpleDTO motif,
         String user,
-        String projet,
-        List<String> transports,
-
+        ProjetSimpleDTO projet,
+        List<TransportResponseDTO> transports,
         String complementMotif,
         String lieu,
         LocalDateTime dateD,
@@ -24,11 +23,8 @@ public record MissionResponseDTO(
         Integer nbRepas,
         Boolean billetAgence,
         String commentaireTransport,
+        String adEntiteDemandante
 
 
-        String adEntiteDemandante,
-        String adAllerTrajet,
-        String adAllerPays,
-        String adRetourTrajet,
-        String adRetourPays
+
 ) {}

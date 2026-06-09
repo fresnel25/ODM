@@ -1,11 +1,15 @@
 package org.example.odm_backend.mappers;
 
+import org.example.odm_backend.dtos.EquipeDto.EquipeSimpleDTO;
 import org.example.odm_backend.dtos.ProjetDTO.ProjetResponseDTO;
 import org.example.odm_backend.dtos.ProjetDTO.ProjetRequestDTO;
+import org.example.odm_backend.dtos.ProjetDTO.ProjetSimpleDTO;
 import org.example.odm_backend.entities.Equipe;
 import org.example.odm_backend.entities.Projet;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface ProjetMapper {
@@ -13,10 +17,17 @@ public interface ProjetMapper {
     @Mapping(source = "equipes", target = "equipes")
     ProjetResponseDTO toResponse(Projet projet);
 
-    default String map(Equipe equipe) {
-        return equipe != null && equipe.getNomEquipe() != null
-                ? equipe.getNomEquipe()
-                : null;
+
+    default List<EquipeSimpleDTO> map(List<Equipe> equipes) {
+        if (equipes == null) {
+            return List.of();
+        }
+        return equipes.stream()
+                .map(equipe -> new EquipeSimpleDTO(
+                        equipe.getId(),
+                        equipe.getNomEquipe()
+                ))
+                .toList();
     }
 
     @Mapping(target = "equipes", ignore = true)

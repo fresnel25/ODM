@@ -1,7 +1,7 @@
-const ButtonForm = ({title, onClick}) => {
+const ButtonForm = ({title, onClick, icon}) => {
   return (
     <div>
-      <button type="submit" onClick={onClick} className="btn buttom-custom rounded-2xl btn-sm xl:btn-md">{title}</button>
+      <button type="submit" onClick={onClick} className="btn btn-primary btn-sm xl:btn-md">{icon} {title}</button>
     </div>
   );
 };

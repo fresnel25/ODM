@@ -1,9 +1,40 @@
-const EditUser = () => {
+import ModalForm from "../../components/Utils/ModalForm";
+import { useAuth } from "../../services/context/AuthContext";
+import EditUserFormByAdmin from "./EditForm/EditUserFormByAdmin";
+import EditUserFormByOwner from "./EditForm/EditUserFormByOwner";
+
+const EditUser = ({ openEdit, setOpenEdit, selectedUser, onSuccess }) => {
+  const { user } = useAuth();
+
+  const isAdminOrSecretary =
+    user?.role === "ADMIN" || user?.role === "SECRETARY";
 
   return (
-    <div className="p-6 space-y-6">
-      <h2 className="text-2xl font-bold">Modifier utilisateur</h2>
-    </div>
+    <ModalForm
+      titre={`Modifier ${selectedUser?.email || ""}`}
+      isOpen={openEdit}
+      onClose={() => setOpenEdit(false)}
+    >
+      {selectedUser && isAdminOrSecretary && (
+        <EditUserFormByAdmin
+          user={selectedUser}
+          onSuccess={() => {
+            onSuccess();
+            setOpenEdit(false);
+          }}
+        />
+      )}
+
+      {selectedUser && !isAdminOrSecretary && (
+        <EditUserFormByOwner
+          user={selectedUser}
+          onSuccess={() => {
+            onSuccess();
+            setOpenEdit(false);
+          }}
+        />
+      )}
+    </ModalForm>
   );
 };
 

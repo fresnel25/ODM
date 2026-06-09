@@ -18,14 +18,40 @@ const GetAllEquipes = ({
   const [equipes, setEquipes] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(0);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const fetchEquipes = async () => {
     try {
-      const res = await getEquipes();
+      setLoading(true);
+
+      const res = await getEquipes({
+        page,
+        size,
+        search: debouncedSearch,
+      });
+
       if (res.success) {
-        setEquipes(res.data.content);
+        setEquipes(res.data.content || []);
+        setTotalPages(res.data.totalPages || 0);
       }
     } catch (error) {
-      console.log(error.response?.data?.message);
+      toast.error(
+        error.response?.data?.message || "Erreur chargement des équipes",
+      );
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -33,52 +59,63 @@ const GetAllEquipes = ({
 
   useEffect(() => {
     fetchEquipes();
-  }, [refresh]);
+  }, [refresh, page, size, debouncedSearch]);
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Supprimer cette équipe ?")) return;
     try {
       const response = await deleteEquipe(id);
-      toast.success(response.message);
-      refreshEquipes();
+      toast.success(response.message || "Équipe supprimée");
+      if (equipes.length === 1 && page > 0) {
+        setPage((prev) => prev - 1);
+      } else {
+        refreshEquipes?.();
+        fetchEquipes();
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message);
+      toast.error(
+        error.response?.data?.message || "Erreur lors de la suppression",
+      );
     }
   };
 
   const handleView = async (id) => {
     try {
       const res = await getEquipeById(id);
-      console.log(res);
       if (res.success) {
         setSelectedEquipe(res.data);
         setOpenView(true);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message);
+      toast.error(error.response?.data?.message || "Erreur chargement équipe");
     }
   };
 
   const handleEdit = async (id) => {
     try {
       const res = await getEquipeById(id);
-      console.log(res);
       if (res.success) {
         setSelectedEquipe(res.data);
         setOpenEdit(true);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message);
+      toast.error(error.response?.data?.message || "Erreur chargement équipe");
     }
   };
 
   const columns = [
-    { key: "id", label: "ID" },
-
-    { key: "nomEquipe", label: "Nom Equipe" },
-
+    {
+      key: "id",
+      label: "ID",
+    },
+    {
+      key: "nomEquipe",
+      label: "Nom équipe",
+    },
     {
       key: "actions",
       label: "Actions",
+      enableSorting: false,
       render: (_, row) => (
         <div className="flex gap-5 justify-center">
           <button
@@ -106,7 +143,7 @@ const GetAllEquipes = ({
     },
   ];
 
-  if (loading) {
+  if (loading && equipes.length === 0) {
     return (
       <div className="flex justify-center mt-10">
         <span className="loading loading-spinner loading-xl"></span>
@@ -114,7 +151,23 @@ const GetAllEquipes = ({
     );
   }
 
-  return <CardTable columns={columns} data={equipes} />;
+  return (
+    <CardTable
+      columns={columns}
+      data={equipes}
+      searchValue={search}
+      onSearchChange={setSearch}
+      page={page}
+      totalPages={totalPages}
+      onPageChange={setPage}
+      pageSize={size}
+      onPageSizeChange={(value) => {
+        setSize(value);
+        setPage(0);
+      }}
+      loading={loading}
+    />
+  );
 };
 
 export default GetAllEquipes;

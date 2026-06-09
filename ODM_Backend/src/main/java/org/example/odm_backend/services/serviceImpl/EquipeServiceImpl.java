@@ -8,14 +8,17 @@ import org.example.odm_backend.entities.Equipe;
 import org.example.odm_backend.entities.Projet;
 import org.example.odm_backend.exceptions.DuplicateResourceException;
 import org.example.odm_backend.exceptions.NotFoundException;
+import org.example.odm_backend.exceptions.ValidationException;
 import org.example.odm_backend.mappers.EquipeMapper;
 import org.example.odm_backend.repositories.EquipeRepository;
 import org.example.odm_backend.repositories.ProjetRepository;
+import org.example.odm_backend.repositories.UserRepository;
 import org.example.odm_backend.services.serviceInterface.EquipeService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,15 +28,17 @@ public class EquipeServiceImpl implements EquipeService {
     private final EquipeRepository equipeRepository;
     private final ProjetRepository projetRepository;
     private final EquipeMapper equipeMapper;
+    private final UserRepository userRepository;
 
     public EquipeServiceImpl(
             EquipeRepository equipeRepository,
             ProjetRepository projetRepository,
-            EquipeMapper equipeMapper
+            EquipeMapper equipeMapper, UserRepository userRepository
     ) {
         this.equipeRepository = equipeRepository;
         this.projetRepository = projetRepository;
         this.equipeMapper = equipeMapper;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -90,11 +95,26 @@ public class EquipeServiceImpl implements EquipeService {
     @Override
     public void deleteEquipe(Long id) {
 
-        if (!equipeRepository.existsById(id)) {
-            throw new NotFoundException("Equipe non trouvée");
+        Equipe equipe = equipeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Equipe non trouvée"));
+
+        List<String> erreurs = new ArrayList<>();
+
+        if (userRepository.existsByEquipeId(id)) {
+            erreurs.add("des utilisateurs sont rattachés à cette équipe");
         }
 
-        equipeRepository.deleteById(id);
+        if (projetRepository.existsByEquipes_Id(id)) {
+            erreurs.add("elle est associée à un ou plusieurs projets");
+        }
+
+        if (!erreurs.isEmpty()) {
+            throw new ValidationException(
+                    "Impossible de supprimer cette équipe : " + String.join(" et ", erreurs)
+            );
+        }
+
+        equipeRepository.delete(equipe);
     }
 
     @Override
@@ -107,10 +127,7 @@ public class EquipeServiceImpl implements EquipeService {
     }
 
     @Override
-    public Page<EquipeResponseDTO> search(EquipeFilterDTO filter, Pageable pageable) {
-        return equipeRepository.search(
-                filter.nomEquipe(),
-                pageable
-        ).map(equipeMapper::toResponse);
+    public Page<EquipeResponseDTO> search(String search, Pageable pageable) {
+        return equipeRepository.search(search, pageable).map(equipeMapper::toResponse);
     }
 }

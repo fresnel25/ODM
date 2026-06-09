@@ -131,21 +131,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserResponseDTO> search(UserFilterDTO filter, Pageable pageable) {
+    public Page<UserResponseDTO> search(String search, Pageable pageable) {
 
         if (!securityUtils.isAdminOrSecretary()) {
             throw new AccessDeniedException("Accès refusé");
         }
-
-        return userRepository.searchUsers(
-                filter.firstName(),
-                filter.name(),
-                filter.email(),
-                filter.personnelType(),
-                filter.equipeId(),
-                filter.grade(),
-                pageable
-        ).map(userMapper::toResponse);
+        return userRepository.searchUsers(search, pageable).map(userMapper::toResponse);
     }
 
     public ClassicAuthResponseDTO login(ClassicAuthRequestDTO dto) {

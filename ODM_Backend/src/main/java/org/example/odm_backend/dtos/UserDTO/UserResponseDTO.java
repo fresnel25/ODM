@@ -1,5 +1,6 @@
 package org.example.odm_backend.dtos.UserDTO;
 
+import org.example.odm_backend.dtos.EquipeDto.EquipeSimpleDTO;
 import org.example.odm_backend.enums.TypePersonel;
 
 import java.time.LocalDate;
@@ -10,18 +11,18 @@ public record UserResponseDTO(
         String firstName,
         String name,
         String email,
-
-        String equipe,
+        EquipeSimpleDTO equipe,
         TypePersonel personnelType,
-
         String grade,
         LocalDate dateNaissance,
-
         Boolean actif,
         String role,
-
         String imVehicule,
         Integer pfVehicule,
-        String signatureName
+        String signatureName,
+        String adresseAgent1,
+        String residenceAdmin2
+
 
 ) {}
+

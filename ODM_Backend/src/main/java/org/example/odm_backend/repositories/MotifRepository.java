@@ -11,14 +11,15 @@ public interface MotifRepository extends JpaRepository<Motif, Long> {
     boolean existsByNomMotif(String nomMotif);
 
     @Query("""
-        SELECT m FROM Motif m
-        WHERE (:nomMotif IS NULL OR LOWER(m.nomMotif) LIKE LOWER(CONCAT('%', :nomMotif, '%')))
-        AND (:estDansListe IS NULL OR m.estDansListe = :estDansListe)
-    """)
-
+    SELECT m FROM Motif m
+    WHERE (
+        :search IS NULL OR :search = ''
+        OR LOWER(m.nomMotif) LIKE LOWER(CONCAT('%', :search, '%'))
+        OR LOWER(CAST(m.estDansListe AS string)) LIKE LOWER(CONCAT('%', :search, '%'))
+    )
+""")
     Page<Motif> search(
-            @Param("nomMotif") String nomMotif,
-            @Param("estDansListe") Boolean estDansListe,
+            @Param("search") String search,
             Pageable pageable
     );
 }

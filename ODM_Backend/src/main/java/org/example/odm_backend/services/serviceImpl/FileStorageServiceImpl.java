@@ -47,28 +47,23 @@ public class FileStorageServiceImpl implements FileStorageService {
 
     @Override
     public Resource load(String folder, String filename) {
-
         try {
             Path file = Paths.get(uploadDir, folder)
                     .resolve(filename);
             Resource resource = new UrlResource(file.toUri());
-
             if (!resource.exists()) {
                 throw new RuntimeException("Fichier introuvable");
             }
             return resource;
-
         } catch (MalformedURLException e) {
             throw new RuntimeException("Erreur lecture fichier", e);
         }
     }
 
     private String getExtension(String filename) {
-
         if (filename == null || !filename.contains(".")) {
             return "png";
         }
-
         return filename.substring(filename.lastIndexOf(".") + 1);
     }
 }

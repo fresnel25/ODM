@@ -77,14 +77,11 @@ public class AppSettingController {
         );
     }
 
-    // ======================
+
     // UPLOAD LOGO
-    // ======================
     @PostMapping(value = "/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<String>> uploadLogo(@RequestParam("file") MultipartFile file) {
-
         String fileName = fileStorageService.save(file, "logos");
-
         return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
@@ -95,23 +92,18 @@ public class AppSettingController {
         );
     }
 
-    // ======================
     // SERVE LOGO (FIX PROD)
-    // ======================
+
     @GetMapping("/logo/{filename}")
     public ResponseEntity<Resource> getLogo(@PathVariable String filename) {
 
         Resource file = fileStorageService.load("logos", filename);
-
         MediaType mediaType = MediaType.IMAGE_PNG; // fallback safe
 
         try {
             Path path = Paths.get(file.getFile().getAbsolutePath());
             String detected = Files.probeContentType(path);
-
-            if (detected != null) {
-                mediaType = MediaType.parseMediaType(detected);
-            }
+            if (detected != null) {mediaType = MediaType.parseMediaType(detected);}
         } catch (Exception ignored) {}
 
         return ResponseEntity.ok()

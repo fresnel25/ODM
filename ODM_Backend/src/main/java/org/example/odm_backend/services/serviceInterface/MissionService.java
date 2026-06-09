@@ -15,8 +15,8 @@ public interface MissionService {
     void deleteMission(Long id);
     MissionResponseDTO getById(Long id);
    // List<MissionResponseDTO> getAll();
-   Page<MissionResponseDTO> allMissions(MissionFilterDTO filter, Pageable pageable);
-   Page<MissionResponseDTO> myMissions(MissionFilterDTO filter, Pageable pageable);
+   Page<MissionResponseDTO> allMissions( String search, Pageable pageable);
+   Page<MissionResponseDTO> myMissions(String search, Pageable pageable);
 
     @Transactional
     MissionResponseDTO validateMission(Long missionId, MissionValidationDTO dto);

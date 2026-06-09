@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 import InputForm from "../../../components/composant_formulaire/InputForm";
 import { toast } from "react-toastify";
-import { updateUserByOwner } from "../../../services/api/utilisateurService";
+import {
+  updateUserByOwner,
+  uploadSignature,
+} from "../../../services/api/utilisateurService";
 
 const EditUserFormByOwner = ({ user, onSuccess }) => {
+  const [signatureFile, setSignatureFile] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     firstName: "",
     name: "",
@@ -60,18 +65,43 @@ const EditUserFormByOwner = ({ user, onSuccess }) => {
     );
   };
 
+  const handleSignatureChange = (e) => {
+    setSignatureFile(e.target.files?.[0] || null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.password !== form.confirmPassword) {
       toast.error("Les mots de passe ne correspondent pas");
       return;
     }
+
+    setLoading(true);
+
     try {
-      const payload = sanitizePayload(form);
+      let signaturePath = user.signatureName;
+
+      //upload signature si nouveau fichier
+      if (signatureFile) {
+        const formData = new FormData();
+        formData.append("file", signatureFile);
+
+        const res = await uploadSignature(formData);
+        signaturePath = res.data.path;
+      }
+
+      const payload = sanitizePayload({
+        ...form,
+        signatureName: signaturePath,
+      });
+
       const response = await updateUserByOwner(user.id, payload);
       toast.success(response.message || "Profil mis à jour");
       onSuccess?.();
+      console.log(payload);
     } catch (error) {
+      console.log("ERROR FULL:", error);
+      console.log("RESPONSE:", error.response);
       toast.error(
         error.response?.data?.message || "Erreur lors de la modification",
       );
@@ -181,13 +211,24 @@ const EditUserFormByOwner = ({ user, onSuccess }) => {
         </div>
 
         {/* SIGNATURE */}
-        <InputForm
-          label="Nom Signature"
-          name="signatureName"
-          value={form.signatureName}
-          onChange={handleChange}
-          placeholder="Nom signature"
-        />
+        <div className="flex flex-col gap-2">
+          <label className="font-medium">Signature</label>
+
+          {user?.signatureName && (
+            <img
+              src={user.signatureName}
+              alt="signature"
+              className="h-20 border rounded"
+            />
+          )}
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleSignatureChange}
+            className="file-input file-input-bordered"
+          />
+        </div>
 
         {/* ADRESSE */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">

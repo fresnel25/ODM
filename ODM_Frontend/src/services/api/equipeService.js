@@ -2,10 +2,17 @@ import api from "../api";
 
 const URL = "/equipes";
 
-export const getEquipes = async (params) => {
-  const response = await api.get(URL, {
-    params,
-  });
+export const getEquipes = async ({ page = 0, size = 10, search = "" }= {}) => {
+  const params = {
+    page,
+    size,
+  };
+
+  if (search?.trim()) {
+    params.search = search.trim();
+  }
+
+  const response = await api.get(URL, { params });
 
   return response.data;
 };

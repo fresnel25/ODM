@@ -24,6 +24,11 @@ const MultiSelectInput = ({
             borderColor: "#374151",
             borderRadius: "12px",
             minHeight: "45px",
+            boxShadow: "none",
+          }),
+          singleValue: (base) => ({
+            ...base,
+            color: "white",
           }),
           option: (base, state) => ({
             ...base,
@@ -45,23 +50,10 @@ const MultiSelectInput = ({
             backgroundColor: "#1d232a",
             borderRadius: "12px",
             overflow: "hidden",
+            zIndex: 50,
           }),
           input: (base) => ({
             ...base,
-            color: "white",
-          }),
-          multiValueRemove: (base) => ({
-            ...base,
-            color: "white",
-            backgroundColor: "#374151",
-            ":hover": {
-              backgroundColor: "#dc2626",
-              color: "white",
-            },
-          }),
-          multiValueLabel: (base) => ({
-            ...base,
-            backgroundColor: "#374151",
             color: "white",
           }),
         }}

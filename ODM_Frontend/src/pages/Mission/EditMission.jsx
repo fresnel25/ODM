@@ -1,13 +1,22 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 import InputForm from "../../components/composant_formulaire/InputForm";
-import ReactSelectInput from "../../components/Utils/ReactSelectInput";
-
-import { missionApi } from "../../services/api/missionService";
+import SelectInput from "../../components/Utils/SelectInput";
+import LocationInput from "./LocationInput";
 
 import { getMotifs } from "../../services/api/motifService";
 import { getMyEquipeProjects } from "../../services/api/projetService";
+import { missionApi } from "../../services/api/missionService";
+import { mapToOptions } from "../../common/utils/options";
+
+const emptyTransport = {
+  typeTransport: "",
+  adresseDepart: null,
+  adresseArrivee: null,
+  imVehicule: "",
+  pfVehicule: "",
+};
 
 const EditMission = ({ mission, onSuccess, onClose }) => {
   const [loading, setLoading] = useState(false);
@@ -16,186 +25,40 @@ const EditMission = ({ mission, onSuccess, onClose }) => {
   const [projets, setProjets] = useState([]);
 
   const [form, setForm] = useState({
-    motif: null,
-    projet: null,
+    motifId: mission?.motif?.id ?? "",
+    projetId: mission?.projet?.id ?? "",
+    lieu: mission?.lieu ?? "",
+    complementMotif: mission?.complementMotif ?? "",
+    dateD: mission?.dateD ? mission.dateD.slice(0, 16) : "",
+    dateR: mission?.dateR ? mission.dateR.slice(0, 16) : "",
+    sansFrais: mission?.sansFrais ?? false,
+    billetAgence: mission?.billetAgence ?? false,
 
-    transports: [],
-
-    complementMotif: "",
-    lieu: "",
-
-    dateD: "",
-    dateR: "",
-
-    sansFrais: false,
-    billetAgence: false,
-
-    commentaireTransport: "",
-
-    adEntiteDemandante: "",
-    adAllerTrajet: "",
-    adAllerPays: "",
-    adRetourTrajet: "",
-    adRetourPays: "",
+    // Important : on ne reprend pas les anciens déplacements
+    transports: [{ ...emptyTransport }],
   });
 
-  // =========================
-  // LOAD DATA
-  // =========================
-
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [m, p] = await Promise.all([getMotifs(), getMyEquipeProjects()]);
+        setMotifs(m.data.content || m.data);
+        setProjets(p.data.content || p.data);
+      } catch (error) {
+        console.error(error);
+        toast.error("Erreur chargement des données");
+      }
+    };
+
     loadData();
   }, []);
 
-  const loadData = async () => {
-    try {
-      const [motifsRes, projetsRes] = await Promise.all([
-        getMotifs(),
-        getMyEquipeProjects(),
-      ]);
-
-      if (motifsRes.success) {
-        setMotifs(motifsRes.data.content || motifsRes.data);
-      }
-
-      if (projetsRes.success) {
-        setProjets(projetsRes.data.content || projetsRes.data);
-      }
-    } catch (error) {
-      console.log(error);
-
-      toast.error("Erreur chargement données");
-    }
-  };
-
-  // =========================
-  // FORMAT DATE
-  // =========================
-
-  const formatDateForInput = (date) => {
-    if (!date) return "";
-
-    const d = new Date(date);
-
-    const pad = (n) => String(n).padStart(2, "0");
-
-    return `${d.getFullYear()}-${pad(
-      d.getMonth() + 1,
-    )}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
-
-  // =========================
-  // OPTIONS
-  // =========================
-
-  const motifsOptions = motifs.map((m) => ({
-    value: m.id,
-    label: m.nomMotif,
-  }));
-
-  const projetsOptions = projets.map((p) => ({
-    value: p.id,
-    label: p.nomProjet,
-  }));
-
   const transportOptions = [
-    {
-      value: "VP",
-      label: "Véhicule Personnel",
-    },
-
-    {
-      value: "VS",
-      label: "Véhicule Service",
-    },
-
-    {
-      value: "AVION",
-      label: "Avion",
-    },
-
-    {
-      value: "TRAIN",
-      label: "Train",
-    },
-
-    {
-      value: "TAXI",
-      label: "Taxi",
-    },
+    { value: "VP", label: "Véhicule personnel" },
+    { value: "VS", label: "Véhicule de service" },
+    { value: "TRAIN", label: "Train" },
+    { value: "AVION", label: "Avion" },
   ];
-
-  // =========================
-  // PREFILL FORM
-  // =========================
-
-  useEffect(() => {
-    if (!mission || motifs.length === 0 || projets.length === 0) return;
-
-    const selectedMotif = motifs.find((m) => m.id === mission.motifId);
-
-    const selectedProjet = projets.find((p) => p.id === mission.projetId);
-
-    setForm({
-      motif: selectedMotif
-        ? {
-            value: selectedMotif.id,
-            label: selectedMotif.nomMotif,
-          }
-        : null,
-
-      projet: selectedProjet
-        ? {
-            value: selectedProjet.id,
-            label: selectedProjet.nomProjet,
-          }
-        : null,
-
-      transports:
-        mission.transports?.map((t) => ({
-          typeTransport: t.typeTransport
-            ? {
-                value: t.typeTransport,
-                label:
-                  transportOptions.find((o) => o.value === t.typeTransport)
-                    ?.label || t.typeTransport,
-              }
-            : null,
-
-          imVehicule: t.imVehicule || "",
-
-          pfVehicule: t.pfVehicule || "",
-        })) || [],
-
-      complementMotif: mission.complementMotif || "",
-
-      lieu: mission.lieu || "",
-
-      dateD: formatDateForInput(mission.dateD),
-
-      dateR: formatDateForInput(mission.dateR),
-
-      sansFrais: mission.sansFrais ?? false,
-
-      billetAgence: mission.billetAgence ?? false,
-
-      commentaireTransport: mission.commentaireTransport || "",
-
-      adEntiteDemandante: mission.adEntiteDemandante || "",
-
-      adAllerTrajet: mission.adAllerTrajet || "",
-
-      adAllerPays: mission.adAllerPays || "",
-
-      adRetourTrajet: mission.adRetourTrajet || "",
-
-      adRetourPays: mission.adRetourPays || "",
-    });
-  }, [mission, motifs, projets]);
-
-  // =========================
-  // HANDLE CHANGE
-  // =========================
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -206,51 +69,69 @@ const EditMission = ({ mission, onSuccess, onClose }) => {
     }));
   };
 
-  // =========================
-  // TRANSPORTS
-  // =========================
-
   const addTransport = () => {
     setForm((prev) => ({
       ...prev,
-
-      transports: [
-        ...prev.transports,
-
-        {
-          typeTransport: null,
-          imVehicule: "",
-          pfVehicule: "",
-        },
-      ],
+      transports: [...prev.transports, { ...emptyTransport }],
     }));
   };
 
   const updateTransport = (index, field, value) => {
-    const updated = [...form.transports];
-
-    updated[index] = {
-      ...updated[index],
-      [field]: value,
-    };
-
     setForm((prev) => ({
       ...prev,
-      transports: updated,
+      transports: prev.transports.map((transport, i) =>
+        i === index ? { ...transport, [field]: value } : transport,
+      ),
     }));
   };
 
   const removeTransport = (index) => {
     setForm((prev) => ({
       ...prev,
-
-      transports: prev.transports.filter((_, i) => i !== index),
+      transports:
+        prev.transports.length > 1
+          ? prev.transports.filter((_, i) => i !== index)
+          : [{ ...emptyTransport }],
     }));
   };
 
-  // =========================
-  // SUBMIT
-  // =========================
+  const buildPayload = () => {
+    return {
+      motifId: form.motifId ? Number(form.motifId) : null,
+      projetId: form.projetId ? Number(form.projetId) : null,
+
+      lieu: form.lieu,
+      complementMotif: form.complementMotif,
+      dateD: form.dateD,
+      dateR: form.dateR,
+
+      sansFrais: form.sansFrais,
+      billetAgence: form.billetAgence,
+
+      transports: form.transports.map((t) => ({
+        typeTransport: t.typeTransport,
+
+        adresseDepart: t.adresseDepart?.name ?? "",
+        paysDepart: t.adresseDepart?.country ?? "",
+        latitudeDepart: t.adresseDepart?.latitude ?? null,
+        longitudeDepart: t.adresseDepart?.longitude ?? null,
+
+        adresseArrivee: t.adresseArrivee?.name ?? "",
+        paysArrivee: t.adresseArrivee?.country ?? "",
+        latitudeArrivee: t.adresseArrivee?.latitude ?? null,
+        longitudeArrivee: t.adresseArrivee?.longitude ?? null,
+
+        // VS seulement : l'utilisateur saisit
+        // VP : le backend prend depuis le profil
+        // TRAIN / AVION : null
+        imVehicule: t.typeTransport === "VS" ? t.imVehicule || null : null,
+        pfVehicule:
+          t.typeTransport === "VS" && t.pfVehicule
+            ? Number(t.pfVehicule)
+            : null,
+      })),
+    };
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -258,287 +139,248 @@ const EditMission = ({ mission, onSuccess, onClose }) => {
     try {
       setLoading(true);
 
-      const payload = {
-        motifId: form.motif?.value,
+      await missionApi.update(mission.id, buildPayload());
 
-        projetId: form.projet?.value,
-
-        complementMotif: form.complementMotif,
-
-        lieu: form.lieu,
-
-        dateD: form.dateD,
-
-        dateR: form.dateR,
-
-        sansFrais: form.sansFrais,
-
-        billetAgence: form.billetAgence,
-
-        commentaireTransport: form.commentaireTransport,
-
-        adEntiteDemandante: form.adEntiteDemandante,
-
-        adAllerTrajet: form.adAllerTrajet,
-
-        adAllerPays: form.adAllerPays,
-
-        adRetourTrajet: form.adRetourTrajet,
-
-        adRetourPays: form.adRetourPays,
-
-        transports: form.transports.map((t) => ({
-          typeTransport: t.typeTransport?.value,
-
-          imVehicule: t.imVehicule,
-
-          pfVehicule: t.pfVehicule,
-        })),
-      };
-
-      console.log(payload);
-
-      const response = await missionApi.update(mission.id, payload);
-
-      toast.success(response.message || "Mission modifiée avec succès");
-
+      toast.success("Mission modifiée");
       onSuccess?.();
-
       onClose?.();
     } catch (error) {
-      console.log(error);
-
-      toast.error(
-        error.response?.data?.message || "Erreur modification mission",
-      );
+      console.error(error);
+      toast.error("Erreur modification");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="flex flex-col gap-6">
-        {/* SELECTS */}
+    <div className="w-full flex justify-center">
+      <form
+        className="w-full max-w-5xl flex flex-col gap-6"
+        onSubmit={handleSubmit}
+      >
+        <div className="card bg-base-100 shadow border">
+          <div className="card-body">
+            <h2 className="text-xl font-bold">Modifier la mission</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <ReactSelectInput
-            label="Motif"
-            value={form.motif}
-            options={motifsOptions}
-            placeholder="Choisir un motif"
-            onChange={(value) =>
-              setForm((prev) => ({
-                ...prev,
-                motif: value,
-              }))
-            }
-          />
-
-          <ReactSelectInput
-            label="Projet"
-            value={form.projet}
-            options={projetsOptions}
-            placeholder="Choisir un projet"
-            onChange={(value) =>
-              setForm((prev) => ({
-                ...prev,
-                projet: value,
-              }))
-            }
-          />
-        </div>
-
-        {/* INFOS */}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <InputForm
-            label="Lieu"
-            name="lieu"
-            value={form.lieu}
-            onChange={handleChange}
-          />
-
-          <InputForm
-            label="Complément motif"
-            name="complementMotif"
-            value={form.complementMotif}
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* DATES */}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <InputForm
-            type="datetime-local"
-            label="Date départ"
-            name="dateD"
-            value={form.dateD}
-            onChange={handleChange}
-          />
-
-          <InputForm
-            type="datetime-local"
-            label="Date retour"
-            name="dateR"
-            value={form.dateR}
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* TRANSPORTS */}
-
-        <div className="border border-base-300 rounded-2xl p-5 flex flex-col gap-5">
-          <div className="flex justify-between items-center">
-            <h2 className="font-bold text-lg">Transports</h2>
-
-            <button
-              type="button"
-              className="btn btn-sm btn-primary"
-              onClick={addTransport}
-            >
-              Ajouter
-            </button>
-          </div>
-
-          {form.transports.length === 0 && (
-            <p className="text-sm text-gray-400">Aucun transport ajouté</p>
-          )}
-
-          {form.transports.map((transport, index) => (
-            <div
-              key={index}
-              className="border border-base-300 rounded-xl p-4 flex flex-col gap-4"
-            >
-              <ReactSelectInput
-                label="Type transport"
-                value={transport.typeTransport}
-                options={transportOptions}
-                placeholder="Choisir un transport"
-                onChange={(value) =>
-                  updateTransport(index, "typeTransport", value)
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <SelectInput
+                label="Motif"
+                value={form.motifId}
+                options={mapToOptions(motifs, "nomMotif")}
+                placeholder="Choisir un motif"
+                onChange={(v) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    motifId: v ? Number(v) : "",
+                  }))
                 }
               />
 
-              {transport.typeTransport?.value === "VS" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InputForm
-                    label="Immatriculation"
-                    value={transport.imVehicule}
-                    onChange={(e) =>
-                      updateTransport(index, "imVehicule", e.target.value)
+              <SelectInput
+                label="Projet"
+                value={form.projetId}
+                options={mapToOptions(projets, "nomProjet")}
+                placeholder="Choisir un projet"
+                onChange={(v) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    projetId: v ? Number(v) : "",
+                  }))
+                }
+              />
+
+              <InputForm
+                label="Lieu"
+                name="lieu"
+                value={form.lieu}
+                onChange={handleChange}
+              />
+
+              <InputForm
+                label="Complément"
+                name="complementMotif"
+                value={form.complementMotif}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="card bg-base-100 shadow border">
+          <div className="card-body">
+            <h2 className="text-xl font-bold">Période</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InputForm
+                type="datetime-local"
+                label="Date départ"
+                name="dateD"
+                value={form.dateD}
+                onChange={handleChange}
+              />
+
+              <InputForm
+                type="datetime-local"
+                label="Date retour"
+                name="dateR"
+                value={form.dateR}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="card bg-base-100 shadow border">
+          <div className="card-body">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold">
+                Déplacements à renseigner à nouveau
+              </h2>
+
+              <button
+                type="button"
+                onClick={addTransport}
+                className="btn btn-primary btn-sm"
+              >
+                + Ajouter
+              </button>
+            </div>
+
+            {form.transports.map((t, index) => (
+              <div
+                key={index}
+                className="border rounded-xl p-4 flex flex-col gap-3"
+              >
+                <SelectInput
+                  label="Type de déplacement"
+                  value={t.typeTransport}
+                  options={transportOptions}
+                  placeholder="Choisir un transport"
+                  onChange={(v) => {
+                    updateTransport(index, "typeTransport", v || "");
+
+                    if (v !== "VS") {
+                      updateTransport(index, "imVehicule", "");
+                      updateTransport(index, "pfVehicule", "");
+                    }
+                  }}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <LocationInput
+                    label="Départ"
+                    value={t.adresseDepart?.name || ""}
+                    onSelect={(location) =>
+                      updateTransport(index, "adresseDepart", {
+                        name: location.adresse,
+                        country: location.pays,
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                      })
                     }
                   />
 
-                  <InputForm
-                    label="Puissance fiscale"
-                    value={transport.pfVehicule}
-                    onChange={(e) =>
-                      updateTransport(index, "pfVehicule", e.target.value)
+                  <LocationInput
+                    label="Arrivée"
+                    value={t.adresseArrivee?.name || ""}
+                    onSelect={(location) =>
+                      updateTransport(index, "adresseArrivee", {
+                        name: location.adresse,
+                        country: location.pays,
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                      })
                     }
                   />
                 </div>
-              )}
 
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  className="btn btn-error btn-sm"
-                  onClick={() => removeTransport(index)}
-                >
-                  Supprimer
-                </button>
+                {t.typeTransport === "VS" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <InputForm
+                      label="Immatriculation"
+                      value={t.imVehicule}
+                      onChange={(e) =>
+                        updateTransport(index, "imVehicule", e.target.value)
+                      }
+                    />
+
+                    <InputForm
+                      type="number"
+                      label="Puissance fiscale"
+                      value={t.pfVehicule}
+                      onChange={(e) =>
+                        updateTransport(index, "pfVehicule", e.target.value)
+                      }
+                    />
+                  </div>
+                )}
+
+                {t.typeTransport === "VP" && (
+                  <div className="alert alert-info text-sm">
+                    Les informations de votre véhicule personnel seront reprises
+                    automatiquement depuis votre profil.
+                  </div>
+                )}
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    className="btn btn-error btn-sm"
+                    onClick={() => removeTransport(index)}
+                  >
+                    Supprimer
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* COMMENTAIRE */}
+        <div className="card bg-base-100 shadow border">
+          <div className="card-body">
+            <h2 className="text-xl font-bold">Options</h2>
 
-        <InputForm
-          label="Commentaire transport"
-          name="commentaireTransport"
-          value={form.commentaireTransport}
-          onChange={handleChange}
-        />
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="sansFrais"
+                checked={form.sansFrais}
+                onChange={handleChange}
+                className="checkbox"
+              />
+              Sans frais
+            </label>
 
-        {/* ADRESSES */}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <InputForm
-            label="Entité demandante"
-            name="adEntiteDemandante"
-            value={form.adEntiteDemandante}
-            onChange={handleChange}
-          />
-
-          <InputForm
-            label="Trajet Aller"
-            name="adAllerTrajet"
-            value={form.adAllerTrajet}
-            onChange={handleChange}
-          />
-
-          <InputForm
-            label="Pays Aller"
-            name="adAllerPays"
-            value={form.adAllerPays}
-            onChange={handleChange}
-          />
-
-          <InputForm
-            label="Trajet Retour"
-            name="adRetourTrajet"
-            value={form.adRetourTrajet}
-            onChange={handleChange}
-          />
-
-          <InputForm
-            label="Pays Retour"
-            name="adRetourPays"
-            value={form.adRetourPays}
-            onChange={handleChange}
-          />
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="billetAgence"
+                checked={form.billetAgence}
+                onChange={handleChange}
+                className="checkbox"
+              />
+              Billet agence
+            </label>
+          </div>
         </div>
 
-        {/* CHECKBOX */}
+        <div className="flex justify-end gap-2">
+          {onClose && (
+            <button type="button" className="btn" onClick={onClose}>
+              Annuler
+            </button>
+          )}
 
-        <div className="flex flex-col gap-3">
-          <label className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              name="sansFrais"
-              checked={form.sansFrais}
-              onChange={handleChange}
-              className="checkbox checkbox-primary"
-            />
-
-            <span>Sans frais</span>
-          </label>
-
-          <label className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              name="billetAgence"
-              checked={form.billetAgence}
-              onChange={handleChange}
-              className="checkbox checkbox-primary"
-            />
-
-            <span>Billet agence</span>
-          </label>
-        </div>
-
-        {/* BUTTON */}
-
-        <div className="flex justify-end">
-          <button className="btn btn-primary" type="submit" disabled={loading}>
-            {loading ? "Modification..." : "Modifier Mission"}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-primary btn-lg"
+          >
+            {loading ? "Chargement..." : "Modifier mission"}
           </button>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 };
 

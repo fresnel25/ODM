@@ -75,8 +75,8 @@ public class MissionController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<Page<MissionResponseDTO>>> getAllMissions(MissionFilterDTO filter, Pageable pageable) {
-        Page<MissionResponseDTO> page = missionService.allMissions(filter, pageable);
+    public ResponseEntity<ApiResponse<Page<MissionResponseDTO>>> getAllMissions(@RequestParam(required = false) String search, Pageable pageable) {
+        Page<MissionResponseDTO> page = missionService.allMissions(search, pageable);
         return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,
@@ -88,8 +88,8 @@ public class MissionController {
     }
 
     @GetMapping("/myMissions")
-    public ResponseEntity<ApiResponse<Page<MissionResponseDTO>>> getMyMissions(MissionFilterDTO filter, Pageable pageable) {
-        Page<MissionResponseDTO> page = missionService.myMissions(filter, pageable);
+    public ResponseEntity<ApiResponse<Page<MissionResponseDTO>>> getMyMissions(@RequestParam(required = false) String search, Pageable pageable) {
+        Page<MissionResponseDTO> page = missionService.myMissions(search, pageable);
         return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,

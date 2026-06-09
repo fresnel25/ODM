@@ -18,67 +18,119 @@ const GetAllMotifs = ({
   refreshMotifs,
 }) => {
   const [motifs, setMotifs] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(0);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const fetchMotifs = async () => {
     try {
-      const res = await getMotifs();
+      setLoading(true);
+
+      const res = await getMotifs({
+        page,
+        size,
+        search: debouncedSearch,
+      });
+
       if (res.success) {
-        setMotifs(res.data.content);
+        setMotifs(res.data.content || []);
+        setTotalPages(res.data.totalPages || 0);
       }
     } catch (error) {
-      console.log(error.response?.data?.message);
+      toast.error(
+        error.response?.data?.message || "Erreur chargement des motifs",
+      );
+      console.error(error);
     } finally {
       setLoading(false);
+      setInitialLoading(false);
     }
   };
 
   useEffect(() => {
     fetchMotifs();
-  }, [refresh]);
+  }, [refresh, page, size, debouncedSearch]);
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Supprimer ce motif ?")) return;
+
     try {
       const response = await deleteMotif(id);
-      toast.success(response.message);
-      refreshMotifs();
+
+      toast.success(response.message || "Motif supprimé");
+
+      if (motifs.length === 1 && page > 0) {
+        setPage((prev) => prev - 1);
+      } else {
+        refreshMotifs?.();
+        fetchMotifs();
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message);
+      toast.error(
+        error.response?.data?.message || "Erreur lors de la suppression",
+      );
     }
   };
 
   const handleView = async (id) => {
     try {
       const res = await getMotifById(id);
+
       if (res.success) {
         setSelectedMotif(res.data);
         setOpenView(true);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message);
+      toast.error(
+        error.response?.data?.message || "Erreur chargement du motif",
+      );
     }
   };
 
   const handleEdit = async (id) => {
     try {
       const res = await getMotifById(id);
+
       if (res.success) {
         setSelectedMotif(res.data);
         setOpenEdit(true);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message);
+      toast.error(
+        error.response?.data?.message || "Erreur chargement du motif",
+      );
     }
   };
 
   const columns = [
-    { key: "id", label: "ID" },
-
-    { key: "nomMotif", label: "Nom du motif" },
-
+    {
+      key: "id",
+      label: "ID",
+    },
+    {
+      key: "nomMotif",
+      label: "Nom du motif",
+    },
     {
       key: "actions",
       label: "Actions",
+      enableSorting: false,
       render: (_, row) => (
         <div className="flex gap-5 justify-center">
           <button
@@ -106,7 +158,7 @@ const GetAllMotifs = ({
     },
   ];
 
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="flex justify-center mt-10">
         <span className="loading loading-spinner loading-xl"></span>
@@ -114,7 +166,23 @@ const GetAllMotifs = ({
     );
   }
 
-  return <CardTable columns={columns} data={motifs} />;
+  return (
+    <CardTable
+      columns={columns}
+      data={motifs}
+      searchValue={search}
+      onSearchChange={setSearch}
+      page={page}
+      totalPages={totalPages}
+      onPageChange={setPage}
+      pageSize={size}
+      onPageSizeChange={(value) => {
+        setSize(value);
+        setPage(0);
+      }}
+      loading={loading}
+    />
+  );
 };
 
 export default GetAllMotifs;

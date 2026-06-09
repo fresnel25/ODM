@@ -83,8 +83,8 @@ public class EquipeController {
 
     // GET ALL
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<EquipeResponseDTO>>> getEquipeFilter(EquipeFilterDTO filter, Pageable pageable) {
-        Page<EquipeResponseDTO> page = equipeService.search(filter, pageable);
+    public ResponseEntity<ApiResponse<Page<EquipeResponseDTO>>> getEquipeFilter(@RequestParam(required = false) String search, Pageable pageable) {
+        Page<EquipeResponseDTO> page = equipeService.search(search, pageable);
 
         return ResponseEntity.ok(
                 new ApiResponse<>(

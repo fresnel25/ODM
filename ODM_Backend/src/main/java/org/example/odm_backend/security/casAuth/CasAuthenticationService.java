@@ -1,6 +1,7 @@
 package org.example.odm_backend.security.casAuth;
 
 import lombok.RequiredArgsConstructor;
+import org.example.odm_backend.dtos.UserDTO.CasAuthRequestDTO;
 import org.example.odm_backend.entities.User;
 import org.example.odm_backend.enums.AuthProvider;
 import org.example.odm_backend.enums.Role;
@@ -15,18 +16,22 @@ public class CasAuthenticationService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
 
-    public String authenticateCasUser(String email) {
-        User user = userRepository.findByEmail(email).orElseGet(() -> createCasUser(email));
+    public String authenticateCasUser(CasAuthRequestDTO casUser) {
+        User user = userRepository.findByEmail(casUser.email()).orElseGet(() -> createCasUser(casUser));
         return jwtService.generateToken(user);
     }
 
-    private User createCasUser(String email) {
-        User user = new User();
-        user.setEmail(email);
-        user.setPasswd(null);
-        user.setAuthProvider(AuthProvider.CAS);
-        user.setRole(Role.USER);
-        user.setActif(true);
-        return userRepository.save(user);
-    }
+// Créer automatiquement un utilisateur lors de sa première connexion CAS.
+private User createCasUser(CasAuthRequestDTO casUser) {
+
+    User user = new User();
+    user.setEmail(casUser.email());
+    user.setFirstName(casUser.firstName());
+    user.setName(casUser.lastName());
+    user.setPasswd(null);
+    user.setRole(Role.USER);
+    user.setAuthProvider(AuthProvider.CAS);
+    user.setActif(true);
+    return userRepository.save(user);
+}
 }

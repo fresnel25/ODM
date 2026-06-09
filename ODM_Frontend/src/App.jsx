@@ -15,7 +15,7 @@ import Mission from "./pages/Mission/Mission";
 import Support from "./pages/Support/Support";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Profile from "./pages/Utilisateur/Profile";
-import DetailsMission from "./pages/Mission/DetailsMission";
+import MyMission from "./pages/Mission/MyMission";
 
 function App() {
   return (
@@ -49,7 +49,7 @@ function App() {
             <Route path="motifs" element={<Motif />} />
             <Route path="equipes" element={<Equipe />} />
             <Route path="missions" element={<Mission />} />
-            <Route path="myMissions" element={<DetailsMission />} />
+            <Route path="myMissions" element={<MyMission />} />
             <Route path="supports" element={<Support />} />
           </Route>
         </Routes>

@@ -4,10 +4,10 @@ services:
     container_name: mysql_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root 
       MYSQL_DATABASE: mydb
     ports:
-      - "3308:3306"
+      - "3308:3306" # à sup
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
@@ -16,8 +16,9 @@ services:
       timeout: 5s
       retries: 10
 
+
   backend:
-    build: 
+    build:
       context: ./ODM_Backend
     container_name: backend
     depends_on:
@@ -29,18 +30,22 @@ services:
       - ./uploads:/app/uploads
     environment:
       SPRING_PROFILES_ACTIVE: docker
+    env_file:
+      - .env
+
 
   frontend:
-    build: 
+    build:
       context: ./ODM_Frontend
     container_name: frontend
     ports:
-      - "5173:5173"
+      - "5173:5173" #remplacer par nginx (port 80/443)
     volumes:
       - ./ODM_Frontend:/app
       - /app/node_modules
     stdin_open: true
     tty: true
+
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -48,9 +53,10 @@ services:
     depends_on:
       - db
     ports:
-      - "8082:80"
+      - "8082:80" # à sup
     environment:
       PMA_HOST: db
+
 
 volumes:
   db_data:

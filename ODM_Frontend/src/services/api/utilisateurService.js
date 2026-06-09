@@ -2,10 +2,17 @@ import api from "../api";
 
 const URL = "/users";
 
-export const getUsers = async (params) => {
-  const response = await api.get(URL, {
-    params,
-  });
+export const getUsers = async ({ page = 0, size = 10, search = "" } = {}) => {
+  const params = {
+    page,
+    size,
+  };
+
+  if (search?.trim()) {
+    params.search = search.trim();
+  }
+
+  const response = await api.get(URL, { params });
 
   return response.data;
 };
@@ -34,6 +41,12 @@ export const deleteUser = async (id) => {
   return response.data;
 };
 
+export const uploadSignature = (formData) =>
+  api.post(`${URL}/signature`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
 // inscription
 const URL_REGISTER = "/auth";

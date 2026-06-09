@@ -13,11 +13,14 @@ import java.util.Optional;
 public interface ProjetRepository extends JpaRepository<Projet, Long> {
 
     @Query("""
-        SELECT p FROM Projet p
-        WHERE (:nomProjet IS NULL OR LOWER(p.nomProjet) LIKE LOWER(CONCAT('%', :nomProjet, '%')))
-    """)
+    SELECT p FROM Projet p
+    WHERE (
+        :search IS NULL OR :search = ''
+        OR LOWER(p.nomProjet) LIKE LOWER(CONCAT('%', :search, '%'))
+    )
+""")
     Page<Projet> search(
-            @Param("nomProjet") String nomProjet,
+            @Param("search") String search,
             Pageable pageable
     );
 
@@ -30,5 +33,8 @@ public interface ProjetRepository extends JpaRepository<Projet, Long> {
     Optional<Projet> findByIdWithEquipes(Long id);
 
     List<Projet> findByEquipes_Id(Long equipeId);
+
+    boolean existsByIdAndEquipesIsNotEmpty(Long id);
+    boolean existsByEquipes_Id(Long equipeId);
 
 }

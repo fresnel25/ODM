@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, Edit, Trash } from "lucide-react";
 import { toast } from "react-toastify";
-
+import Swal from "sweetalert2";
 import { useAuth } from "../../services/context/AuthContext";
 import CardTable from "../../components/Utils/CardTable";
 
@@ -16,19 +16,21 @@ import {
 const GetAllMissions = ({ refresh, refreshMissions }) => {
   const [missions, setMissions] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-
+  const [search, setSearch] = useState("");
+  const [size, setSize] = useState(10);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const fetchMissions = async () => {
     try {
       setLoading(true);
+
       const res = await getMissions({
         page,
-        size: 10,
+        size,
+        search,
       });
 
       if (res.success) {
@@ -44,13 +46,10 @@ const GetAllMissions = ({ refresh, refreshMissions }) => {
 
   useEffect(() => {
     fetchMissions();
-  }, [refresh, page]);
+  }, [refresh, page, size, search]);
 
   const handleViewPdf = (id) => {
-    window.open(
-      `${import.meta.env.VITE_API_URL}/pdf/mission/${id}`,
-      "_blank",
-    );
+    window.open(`${import.meta.env.VITE_API_URL}/pdf/mission/${id}`, "_blank");
   };
 
   const handleDelete = async (id) => {
@@ -79,48 +78,86 @@ const GetAllMissions = ({ refresh, refreshMissions }) => {
 
   const handleValidate = async (row) => {
     const newEtat = row.etat === "VALIDE" ? "SOUMIS" : "VALIDE";
+
     const confirmMsg =
       newEtat === "VALIDE"
         ? "Valider cette mission ?"
         : "Dévalider cette mission ?";
-    if (!window.confirm(confirmMsg)) return;
 
+    const result = await Swal.fire({
+      title: "Confirmation",
+      text: confirmMsg,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Oui",
+      cancelButtonText: "Annuler",
+    });
+    if (!result.isConfirmed) return;
     try {
       await missionApi.validate(row.id, { etat: newEtat });
       toast.success(
         newEtat === "VALIDE" ? "Mission validée" : "Validation annulée",
       );
       refreshMissions();
-    } catch {
-      toast.error("Erreur validation");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Erreur traitement");
     }
   };
 
   const handleProcess = async (row) => {
-    const confirmMsg = row.datePec
-      ? "Annuler le traitement ?"
+    const isAlreadyProcessed = Boolean(row.datePec);
+
+    const confirmMsg = isAlreadyProcessed
+      ? "Annuler le traitement de cette mission ?"
       : "Traiter cette mission ?";
 
-    if (!window.confirm(confirmMsg)) return;
+    const result = await Swal.fire({
+      title: "Confirmation",
+      text: confirmMsg,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Oui",
+      cancelButtonText: "Annuler",
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       await missionApi.process(row.id, {
-        datePec: row.datePec ? null : new Date().toISOString(),
+        datePec: isAlreadyProcessed ? null : new Date().toISOString(),
       });
 
-      toast.success("Traitement mis à jour");
+      toast.success(
+        isAlreadyProcessed
+          ? "Traitement annulé"
+          : "Mission marquée comme traitée",
+      );
+
       refreshMissions();
-    } catch {
-      toast.error("Erreur traitement");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Erreur traitement");
     }
   };
 
   const columns = [
-    { key: "motif", label: "Motif" },
-    { key: "user", label: "Agent" },
-    { key: "projet", label: "Projet" },
-    { key: "lieu", label: "Lieu" },
-
+    {
+      key: "motif",
+      label: "Motif",
+      render: (_, row) => row.motif?.nomMotif || "-",
+    },
+    {
+      key: "user",
+      label: "Agent",
+    },
+    {
+      key: "projet",
+      label: "Projet",
+      render: (_, row) => row.projet?.nomProjet || "-",
+    },
+    {
+      key: "lieu",
+      label: "Lieu",
+    },
     {
       key: "dateD",
       label: "Départ",
@@ -131,9 +168,10 @@ const GetAllMissions = ({ refresh, refreshMissions }) => {
       label: "Retour",
       render: (v) => (v ? new Date(v).toLocaleDateString() : "-"),
     },
-
-    { key: "etat", label: "Etat" },
-
+    {
+      key: "etat",
+      label: "Etat",
+    },
     {
       key: "actions",
       label: "Actions",
@@ -146,7 +184,6 @@ const GetAllMissions = ({ refresh, refreshMissions }) => {
             <Eye size={16} />
           </button>
 
-          {/* USER EDIT */}
           {user?.role === "USER" && row.etat !== "VALIDE" && (
             <button
               className="btn btn-xs btn-warning btn-soft"
@@ -156,7 +193,6 @@ const GetAllMissions = ({ refresh, refreshMissions }) => {
             </button>
           )}
 
-          {/* ADMIN */}
           {user?.role === "ADMIN" && (
             <button
               className={`btn btn-xs btn-soft ${
@@ -168,7 +204,6 @@ const GetAllMissions = ({ refresh, refreshMissions }) => {
             </button>
           )}
 
-          {/* SECRETARY */}
           {user?.role === "SECRETARY" && (
             <button
               className="btn btn-xs btn-info btn-soft"
@@ -178,7 +213,6 @@ const GetAllMissions = ({ refresh, refreshMissions }) => {
             </button>
           )}
 
-          {/* DELETE */}
           {user?.role === "ADMIN" && (
             <button
               className="btn btn-xs btn-error btn-soft"
@@ -192,10 +226,7 @@ const GetAllMissions = ({ refresh, refreshMissions }) => {
     },
   ];
 
-  // =========================
-  // STATES UI
-  // =========================
-  if (loading) {
+  if (loading && missions.length === 0) {
     return (
       <div className="flex justify-center mt-10">
         <span className="loading loading-spinner loading-lg"></span>
@@ -203,44 +234,25 @@ const GetAllMissions = ({ refresh, refreshMissions }) => {
     );
   }
 
-  if (!missions.length) {
-    return (
-      <div className="text-center mt-10 text-gray-500">
-        Aucune mission trouvée
-      </div>
-    );
-  }
-
-  // =========================
-  // RENDER
-  // =========================
   return (
-    <div className="flex flex-col gap-4">
-      <CardTable columns={columns} data={missions} />
-
-      {/* pagination */}
-      <div className="flex justify-center gap-2 mt-4">
-        <button
-          className="btn btn-sm"
-          disabled={page === 0}
-          onClick={() => setPage(page - 1)}
-        >
-          Prev
-        </button>
-
-        <span>
-          {page + 1} / {totalPages}
-        </span>
-
-        <button
-          className="btn btn-sm"
-          disabled={page + 1 >= totalPages}
-          onClick={() => setPage(page + 1)}
-        >
-          Next
-        </button>
-      </div>
-    </div>
+    <CardTable
+      columns={columns}
+      data={missions}
+      searchValue={search}
+      onSearchChange={(value) => {
+        setSearch(value);
+        setPage(0);
+      }}
+      page={page}
+      totalPages={totalPages}
+      onPageChange={setPage}
+      pageSize={size}
+      onPageSizeChange={(value) => {
+        setSize(value);
+        setPage(0);
+      }}
+      loading={loading}
+    />
   );
 };
 

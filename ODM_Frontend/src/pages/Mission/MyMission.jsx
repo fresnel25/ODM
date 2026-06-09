@@ -2,24 +2,37 @@ import { useEffect, useState } from "react";
 import { Eye, Edit, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+
 import CardTable from "../../components/Utils/CardTable";
 import Page_Title from "../../components/Page-Title/Page_Title";
 import ModalForm from "../../components/Utils/ModalForm";
+import ButtonForm from "../../components/composant_formulaire/ButtonForm";
+
 import {
   getMissionById,
   getMyMissions,
 } from "../../services/api/missionService";
+
 import CreateMission from "./CreateMission";
 import EditMission from "./EditMission";
-import ButtonForm from "../../components/composant_formulaire/ButtonForm";
 
-const DetailsMission = () => {
+const MyMission = () => {
   const navigate = useNavigate();
+
   const [missions, setMissions] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
   const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
   const [reloadKey, setReloadKey] = useState(0);
+
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedMission, setSelectedMission] = useState(null);
@@ -28,18 +41,28 @@ const DetailsMission = () => {
     setReloadKey((prev) => prev + 1);
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(0);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const fetchMissions = async () => {
     try {
       setLoading(true);
 
       const res = await getMyMissions({
         page,
-        size: 10,
+        size,
+        search: debouncedSearch,
       });
 
       if (res.success) {
-        setMissions(res.data.content);
-        setTotalPages(res.data.totalPages);
+        setMissions(res.data.content || []);
+        setTotalPages(res.data.totalPages || 0);
       }
     } catch (error) {
       toast.error(
@@ -48,12 +71,13 @@ const DetailsMission = () => {
       );
     } finally {
       setLoading(false);
+      setInitialLoading(false);
     }
   };
 
   useEffect(() => {
     fetchMissions();
-  }, [page, reloadKey]);
+  }, [page, size, debouncedSearch, reloadKey]);
 
   const handleEdit = async (id) => {
     try {
@@ -68,62 +92,65 @@ const DetailsMission = () => {
     }
   };
 
+  const handleViewPdf = (id) => {
+    window.open(`${import.meta.env.VITE_API_URL}/pdf/mission/${id}`, "_blank");
+  };
+
   const columns = [
     {
       key: "motif",
       label: "Motif",
+      render: (_, row) => row.motif?.nomMotif || "-",
     },
-
     {
       key: "projet",
       label: "Projet",
+      render: (_, row) => row.projet?.nomProjet || "-",
     },
-
     {
       key: "lieu",
       label: "Lieu",
     },
-
     {
       key: "dateD",
       label: "Départ",
       render: (value) => (value ? new Date(value).toLocaleDateString() : "-"),
     },
-
     {
       key: "dateR",
       label: "Retour",
       render: (value) => (value ? new Date(value).toLocaleDateString() : "-"),
     },
-
     {
       key: "etat",
       label: "Etat",
-      render: (value) => (
-        <span
-          className={`badge ${
-            value === "VALIDE" ? "badge-success" : "badge-warning"
-          }`}
-        >
-          {value}
-        </span>
-      ),
-    },
+      render: (value) => {
+        const isValide = value === "VALIDE";
 
+        return (
+          <span
+            className={`badge badge-soft ${
+              isValide ? "badge-success" : "badge-warning"
+            }`}
+          >
+            {isValide ? "Validé" : "Soumis"}
+          </span>
+        );
+      },
+    },
     {
       key: "actions",
       label: "Actions",
+      enableSorting: false,
       render: (_, row) => (
         <div className="flex gap-2 justify-center">
-          {/* PDF */}
           <button
             className="btn btn-xs btn-primary btn-soft"
-            onClick={() => navigate(`/dashboard/missions/${row.id}/pdf`)}
+            onClick={() => handleViewPdf(row.id)}
           >
             <Eye size={16} />
           </button>
 
-          {/* EDIT */}
           {row.etat !== "VALIDE" && (
             <button
               className="btn btn-xs btn-warning btn-soft"
@@ -137,7 +164,7 @@ const DetailsMission = () => {
     },
   ];
 
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="flex justify-center mt-10">
         <span className="loading loading-spinner loading-xl"></span>
@@ -147,50 +174,34 @@ const DetailsMission = () => {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <Page_Title Title={"Mes missions"} />
-      </div>
+      <Page_Title Title="Mes missions" />
 
       <div className="flex justify-end">
-        <ButtonForm title="Nouvelle mission" onClick={() => setOpenCreate(true)} icon={<Plus size={18} />}/>
+        <ButtonForm
+          title="Nouvelle mission"
+          onClick={() => setOpenCreate(true)}
+          icon={<Plus size={18} />}
+        />
       </div>
 
-      {!missions.length ? (
-        <div className="bg-base-100 rounded-2xl shadow p-10 text-center">
-          <p className="text-lg font-semibold text-gray-500">
-            Aucune mission trouvée
-          </p>
-        </div>
-      ) : (
-        <>
-          <CardTable columns={columns} data={missions} />
-
-          <div className="flex justify-center items-center gap-3 mt-5">
-            <button
-              className="btn btn-sm"
-              disabled={page === 0}
-              onClick={() => setPage((prev) => prev - 1)}
-            >
-              Précédent
-            </button>
-
-            <span className="font-semibold">
-              Page {page + 1} / {totalPages}
-            </span>
-
-            <button
-              className="btn btn-sm"
-              disabled={page + 1 >= totalPages}
-              onClick={() => setPage((prev) => prev + 1)}
-            >
-              Suivant
-            </button>
-          </div>
-        </>
-      )}
+      <CardTable
+        columns={columns}
+        data={missions}
+        searchValue={search}
+        onSearchChange={setSearch}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        pageSize={size}
+        onPageSizeChange={(value) => {
+          setSize(value);
+          setPage(0);
+        }}
+        loading={loading}
+      />
 
       <ModalForm
-        titre={"Créer une mission"}
+        titre="Créer une mission"
         isOpen={openCreate}
         onClose={() => setOpenCreate(false)}
       >
@@ -203,7 +214,7 @@ const DetailsMission = () => {
       </ModalForm>
 
       <ModalForm
-        titre={"Modifier une mission"}
+        titre="Modifier une mission"
         isOpen={openEdit}
         onClose={() => setOpenEdit(false)}
       >
@@ -213,10 +224,11 @@ const DetailsMission = () => {
             setOpenEdit(false);
             refreshMissions();
           }}
+          onClose={() => setOpenEdit(false)}
         />
       </ModalForm>
     </div>
   );
 };
 
-export default DetailsMission;
+export default MyMission;

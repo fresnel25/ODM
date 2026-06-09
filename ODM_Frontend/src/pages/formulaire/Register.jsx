@@ -3,7 +3,7 @@ import ButtonForm from "../../components/composant_formulaire/ButtonForm";
 import InputForm from "../../components/composant_formulaire/InputForm";
 import ImageForm from "../../components/composant_formulaire/ImageForm";
 import TitleForm from "../../components/composant_formulaire/TitleForm";
-import image1 from "../../../public/assets/img_login_page.svg";
+import image1 from "../../../public/assets/favicon.ico";
 import { toast } from "react-toastify";
 import { registerUser } from "../../services/api/utilisateurService";
 import { useNavigate } from "react-router-dom";

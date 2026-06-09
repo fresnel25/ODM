@@ -15,6 +15,6 @@ public interface MotifService {
     void deleteMotif(Long id);
     MotifResponseDTO getById(Long id);
     // List<MotifResponseDTO> getAll();
-    Page<MotifResponseDTO> search(MotifFilterDTO filter, Pageable pageable);
+    Page<MotifResponseDTO> search(String search, Pageable pageable);
 
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "cas")
 public class CasProperties {
 
+// Centraliser les paramètres CAS dans le fichier :
     private String serverUrl;
     private String serviceUrl;
 }

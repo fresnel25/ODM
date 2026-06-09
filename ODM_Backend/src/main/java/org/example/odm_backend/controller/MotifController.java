@@ -83,10 +83,10 @@ public class MotifController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<MotifResponseDTO>>> getAll( MotifFilterDTO filter, Pageable pageable
+    public ResponseEntity<ApiResponse<Page<MotifResponseDTO>>> getAll( @RequestParam(required = false) String search, Pageable pageable
     ) {
 
-        Page<MotifResponseDTO> page = motifService.search(filter, pageable);
+        Page<MotifResponseDTO> page = motifService.search(search, pageable);
 
         return ResponseEntity.ok(
                 new ApiResponse<>(

@@ -91,7 +91,7 @@ const EditUserFormByAdmin = ({ user, onSuccess }) => {
 
   const personnelTypeOptions = [
     { value: "", label: "Aucun" },
-    { value: "PU", label: "PU" },
+    { value: "PU", label: "Personnel Universitaire" },
     { value: "PE", label: "PE" },
     { value: "DO", label: "DO" },
   ];
@@ -104,22 +104,20 @@ const EditUserFormByAdmin = ({ user, onSuccess }) => {
   return (
     <form onSubmit={handleSubmit}>
       <div className="flex flex-col gap-5">
-        <div className="grid grid-cols-1 gap-3 w-full">
-          <Select
-            value={equipeOptions.find((e) => e.value === form.equipeId) || null}
-            onChange={(selected) =>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          <SelectInput
+            label="Équipe"
+            options={equipeOptions}
+            value={form.equipeId}
+            onChange={(value) =>
               setForm({
                 ...form,
-                equipeId: selected ? selected.value : null,
+                equipeId: value ? Number(value) : null,
               })
             }
-            options={equipeOptions}
             placeholder="Choisir une équipe"
             isClearable
           />
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
           <SelectInput
             label="Rôle"
             value={form.role}
@@ -127,7 +125,9 @@ const EditUserFormByAdmin = ({ user, onSuccess }) => {
             options={roleOptions}
             onChange={(value) => setForm({ ...form, role: value })}
           />
+        </div>
 
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
           <SelectInput
             label="Type personnel"
             value={form.personnelType}
@@ -135,30 +135,28 @@ const EditUserFormByAdmin = ({ user, onSuccess }) => {
             options={personnelTypeOptions}
             onChange={(value) => setForm({ ...form, personnelType: value })}
           />
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
           <InputForm
             label="Grade"
             name="grade"
             value={form.grade}
             onChange={handleChange}
           />
+        </div>
 
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
           <InputForm
             label="Matricule"
             name="matricule"
             value={form.matricule}
             onChange={handleChange}
           />
+          <InputForm
+            label="Login CAS"
+            name="loginCas"
+            value={form.loginCas}
+            onChange={handleChange}
+          />
         </div>
-
-        <InputForm
-          label="Login CAS"
-          name="loginCas"
-          value={form.loginCas}
-          onChange={handleChange}
-        />
 
         <div className="flex items-center gap-3">
           <input

@@ -2,7 +2,6 @@ package org.example.odm_backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.odm_backend.common.ApiResponse;
-import org.example.odm_backend.dtos.ProjetDTO.ProjetFilterDTO;
 import org.example.odm_backend.dtos.ProjetDTO.ProjetRequestDTO;
 import org.example.odm_backend.dtos.ProjetDTO.ProjetResponseDTO;
 import org.example.odm_backend.services.serviceInterface.ProjetService;
@@ -79,8 +78,8 @@ public class ProjetController {
 
     // GET ALL
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<ProjetResponseDTO>>> getProjetFDilter(ProjetFilterDTO filter, Pageable pageable) {
-        Page<ProjetResponseDTO> page = projetService.search(filter, pageable);
+    public ResponseEntity<ApiResponse<Page<ProjetResponseDTO>>> getProjetFDilter(@RequestParam(required = false) String search, Pageable pageable) {
+        Page<ProjetResponseDTO> page = projetService.search(search, pageable);
         return ResponseEntity.ok(
                 new ApiResponse<>(
                         true,

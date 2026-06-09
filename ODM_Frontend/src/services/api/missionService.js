@@ -2,10 +2,17 @@ import api from "../api";
 
 const URL = "/missions";
 
-export const getMissions = async (params) => {
-  const response = await api.get(`${URL}/all`, {
-    params,
-  });
+export const getMissions = async ({ page = 0, size = 10, search = "" } = {}) => {
+  const params = {
+    page,
+    size,
+  };
+
+  if (search?.trim()) {
+    params.search = search.trim();
+  }
+
+  const response = await api.get(`${URL}/all`, { params });
 
   return response.data;
 };
@@ -44,9 +51,18 @@ export const processMission = async (id, data) => {
   return response.data;
 }; */
 
-export const getMyMissions = async (params) => {
-  const response = await api.get(`${URL}/myMissions`, {
-    params,
+export const getMyMissions = async ({ page = 0, size = 10, search = "" }) => {
+
+  const params = {
+    page,
+    size,
+  };
+
+  if (search?.trim()) {
+    params.search = search.trim();
+  }
+
+  const response = await api.get(`${URL}/myMissions`, {params,
   });
 
   return response.data;

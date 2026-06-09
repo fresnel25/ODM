@@ -1,7 +1,7 @@
 import CardTable from "../../components/Utils/CardTable";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Edit, Eye, Pencil, Trash } from "lucide-react";
+import { Edit, Eye, Trash } from "lucide-react";
 import {
   deleteUser,
   getUserById,
@@ -12,52 +12,95 @@ import { toast } from "react-toastify";
 const GetAllUser = ({
   refresh,
   setSelectedUser,
-  setOpenView,
   setOpenEdit,
   refreshUsers,
 }) => {
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(0);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const fetchUsers = async () => {
     try {
-      const res = await getUsers();
+      setLoading(true);
+
+      const res = await getUsers({
+        page,
+        size,
+        search: debouncedSearch,
+      });
+
       if (res.success) {
-        setUsers(res.data.content);
+        setUsers(res.data.content || []);
+        setTotalPages(res.data.totalPages || 0);
       }
     } catch (error) {
-      console.log(error.response?.data?.message);
+      toast.error(
+        error.response?.data?.message ||
+          "Erreur lors du chargement des utilisateurs",
+      );
+      console.error(error);
     } finally {
       setLoading(false);
+      setInitialLoading(false);
     }
   };
 
   useEffect(() => {
     fetchUsers();
-  }, [refresh]);
+  }, [refresh, page, size, debouncedSearch]);
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Supprimer cet utilisateur ?")) return;
+
     try {
       const response = await deleteUser(id);
-      toast.success(response.message);
-      refreshUsers();
+      toast.success(response.message || "Utilisateur supprimé");
+
+      if (users.length === 1 && page > 0) {
+        setPage((prev) => prev - 1);
+      } else {
+        refreshUsers?.();
+        fetchUsers();
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message);
+      toast.error(
+        error.response?.data?.message || "Erreur lors de la suppression",
+      );
     }
   };
 
   const handleEdit = async (id) => {
     try {
       const res = await getUserById(id);
-      console.log(res);
+
       if (res.success) {
         setSelectedUser(res.data);
         setOpenEdit(true);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message);
+      toast.error(
+        error.response?.data?.message ||
+          "Erreur lors du chargement de l'utilisateur",
+      );
     }
   };
 
@@ -68,27 +111,43 @@ const GetAllUser = ({
   };
 
   const userColumns = [
-    { key: "id", label: "ID" },
-    /* {
-      key: "index",
-      label: "#",
-      render: (_, __, index) => index + 1,
-    }, */
-
-    { key: "firstName", label: "Prénom" },
-    { key: "name", label: "Nom" },
-
-    { key: "email", label: "Email" },
-
+    {
+      key: "id",
+      label: "ID",
+    },
+    {
+      key: "firstName",
+      label: "Prénom",
+    },
+    {
+      key: "name",
+      label: "Nom",
+    },
+    {
+      key: "email",
+      label: "Email",
+    },
     {
       key: "role",
-      label: "Role",
-      render: (value) => roleLabels[value] || value,
+      label: "Rôle",
+      render: (value) => (
+        <span
+          className={`badge badge-soft  ${
+            value === "ADMIN"
+              ? "badge-primary"
+              : value === "SECRETARY"
+                ? "badge-info"
+                : "badge-warning"
+          }`}
+        >
+          {roleLabels[value] || value || "-"}
+        </span>
+      ),
     },
-
     {
       key: "actions",
       label: "Actions",
+      enableSorting: false,
       render: (_, row) => (
         <div className="flex gap-5 justify-center">
           <button
@@ -116,7 +175,7 @@ const GetAllUser = ({
     },
   ];
 
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="flex justify-center mt-10">
         <span className="loading loading-spinner loading-xl"></span>
@@ -124,14 +183,22 @@ const GetAllUser = ({
     );
   }
 
-  //if (error) return <p>{error}</p>;
-
   return (
-    <div>
-      <div>
-        <CardTable columns={userColumns} data={users} />
-      </div>
-    </div>
+    <CardTable
+      columns={userColumns}
+      data={users}
+      searchValue={search}
+      onSearchChange={setSearch}
+      page={page}
+      totalPages={totalPages}
+      onPageChange={setPage}
+      pageSize={size}
+      onPageSizeChange={(value) => {
+        setSize(value);
+        setPage(0);
+      }}
+      loading={loading}
+    />
   );
 };
 

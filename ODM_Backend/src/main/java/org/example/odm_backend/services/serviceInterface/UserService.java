@@ -11,7 +11,7 @@ public interface UserService {
     void delete(Long id);
     UserResponseDTO getById(Long id);
     // List<UserResponseDTO> getAll();
-    Page<UserResponseDTO> search(UserFilterDTO filter, Pageable pageable);
+    Page<UserResponseDTO> search(String search, Pageable pageable);
     ClassicAuthResponseDTO login(ClassicAuthRequestDTO dto);
     UserResponseDTO updateUserByAdmin(Long id, UserUpdateRequestDTO dto);
 }

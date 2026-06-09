@@ -1,5 +1,6 @@
 package org.example.odm_backend.mappers;
 
+import org.example.odm_backend.dtos.EquipeDto.EquipeSimpleDTO;
 import org.example.odm_backend.dtos.UserDTO.*;
 import org.example.odm_backend.entities.Equipe;
 import org.example.odm_backend.entities.User;
@@ -9,9 +10,17 @@ import org.mapstruct.*;
 public interface UserMapper {
 
     // ENTITY → RESPONSE
-    @Mapping(source = "equipe.nomEquipe", target = "equipe")
-    @Mapping(source = "role", target = "role")
+    @Mapping(source = "equipe", target = "equipe")
     UserResponseDTO toResponse(User user);
+
+    default EquipeSimpleDTO toEquipeSimpleDTO(Equipe equipe) {
+        if (equipe == null) return null;
+
+        return new EquipeSimpleDTO(
+                equipe.getId(),
+                equipe.getNomEquipe()
+        );
+    }
 
     // REQUEST → ENTITY
     @Mapping(target = "id", ignore = true)
@@ -40,5 +49,4 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateUserAdminFromDto(UserUpdateRequestDTO dto, @MappingTarget User user);
-
 }

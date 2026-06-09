@@ -2,18 +2,22 @@ import ButtonForm from "../../components/composant_formulaire/ButtonForm";
 import InputForm from "../../components/composant_formulaire/InputForm";
 import ImageForm from "../../components/composant_formulaire/ImageForm";
 import TitleForm from "../../components/composant_formulaire/TitleForm";
-import image1 from "../../../public/assets/img-tour.svg";
+import image1 from "../../../public/assets/favicon.ico";
 import { useState } from "react";
 import { useAuth } from "../../services/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import BtnTheme from "../../components/Utils/BtnTheme";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-
   const { login } = useAuth();
+
+  const handleCasLogin = () => {
+    navigate(`${import.meta.env.VITE_AUTH_URL}/cas/login`);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,7 +33,10 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex flex-col items-center justify-center">
+      <div className="">
+        <BtnTheme />
+      </div>
       <div className="card card-xl min-h-[500px] card-border card-side shadow-xl rounded-xl overflow-hidden p-0 gap-15">
         {/* Colonne image */}
         <div className="flex flex-col gap-17 p-0 m-0 justify-center w-90 form-custom">
@@ -47,7 +54,7 @@ const Login = () => {
           <TitleForm title={"Connexion"} />
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <InputForm
-              type="rmail"
+              type="email"
               label="Email"
               placeholder="Entrer votre email"
               value={email}
@@ -60,8 +67,26 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <div className="flex justify-end p-4">
-              <ButtonForm title="Connexion" />
+            <div className="flex flex-col justify-between items-center gap-5 p-4">
+              <div className="flex gap-5">
+                <ButtonForm title="Connexion" />
+
+                <ButtonForm
+                  type="button"
+                  onClick={handleCasLogin}
+                  title="Connexion CAS"
+                />
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  className="text-sm text-primary hover:underline"
+                  onClick={() => navigate("/register")}
+                >
+                  Pas de compte ? Créer un compte
+                </button>
+              </div>
             </div>
           </form>
         </div>

@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+
+uploads/
+*.pdf
+*.sql
+*.dump
+*.bak
+
+ODM_Backend/target/
+ODM_Frontend/node_modules/
+ODM_Frontend/dist/

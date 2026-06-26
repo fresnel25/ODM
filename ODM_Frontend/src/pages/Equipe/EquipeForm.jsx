@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import InputForm from "../../components/composant_formulaire/InputForm";
 import Textarea from "../../components/Utils/Textarea";
 import MultiSelectInput from "../../components/Utils/MultiSelectInput";
 import { getProjets } from "../../services/api/projetService";
 
 const EquipeForm = ({
-  initialData = {},
+  initialData = null,
   submitLabel = "Enregistrer",
   onSubmit,
   loading = false,
@@ -16,11 +16,31 @@ const EquipeForm = ({
   const [projets, setProjets] = useState([]);
 
   useEffect(() => {
+    const fetchProjets = async () => {
+      try {
+        const res = await getProjets({
+          page: 0,
+          size: 100,
+        });
+
+        if (res.success) {
+          setProjets(res.data?.content || []);
+        }
+      } catch (error) {
+        console.error("Erreur chargement projets :", error);
+      }
+    };
+
     fetchProjets();
   }, []);
 
   useEffect(() => {
-    if (!initialData) return;
+    if (!initialData) {
+      setNomEquipe("");
+      setDescription("");
+      setSelectedProjets([]);
+      return;
+    }
 
     setNomEquipe(initialData.nomEquipe || "");
     setDescription(initialData.description || "");
@@ -34,32 +54,21 @@ const EquipeForm = ({
     setSelectedProjets(projetsInitial);
   }, [initialData]);
 
-  const fetchProjets = async () => {
-    try {
-      const res = await getProjets({
-        page: 0,
-        size: 100,
-      });
-
-      if (res.success) {
-        setProjets(res.data.content || []);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const projetOptions = projets.map((projet) => ({
-    value: projet.id,
-    label: projet.nomProjet,
-  }));
+  const projetOptions = useMemo(
+    () =>
+      projets.map((projet) => ({
+        value: projet.id,
+        label: projet.nomProjet,
+      })),
+    [projets],
+  );
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
     onSubmit({
-      nomEquipe,
-      description,
+      nomEquipe: nomEquipe.trim(),
+      description: description.trim(),
       projetIds: selectedProjets.map((projet) => projet.value),
     });
   };
